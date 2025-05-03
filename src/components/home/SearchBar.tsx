@@ -1,6 +1,6 @@
 // src/components/home/SearchBar.tsx
 import { useState } from 'react';
-import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { SortOrder } from '@/types';
 
 interface SearchBarProps {
@@ -25,34 +25,35 @@ export default function SearchBar({ onSearch, onSortChange }: SearchBarProps) {
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
-      <form onSubmit={handleSubmit} className="flex-1 w-full">
-        <div className="relative">
+      <div className="flex-1 w-full flex">
+        <div className="relative flex-grow flex">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <MagnifyingGlassIcon className="h-5 w-5 text-secondary-400" />
           </div>
           <input
             type="text"
-            className="block w-full rounded-md border-secondary-300 pl-10 pr-20 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="block w-full rounded-l-md border border-secondary-300 pl-10 pr-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             placeholder="Search by drug, doctor, hospital, or keywords..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <button
-            type="submit"
-            className="absolute inset-y-0 right-0 flex items-center px-4 bg-primary-600 text-white font-medium rounded-r-md hover:bg-primary-700"
+            type="button"
+            onClick={(e) => handleSubmit(e as any)}
+            className="px-4 py-2 bg-primary-600 text-white font-medium rounded-r-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             Search
           </button>
         </div>
-      </form>
+      </div>
       
-      <div className="flex items-center min-w-[200px]">
-        <label htmlFor="sort" className="text-sm font-medium text-secondary-700 whitespace-nowrap mr-2">
+      <div className="flex items-center whitespace-nowrap">
+        <label htmlFor="sort" className="text-sm font-medium text-secondary-700 mr-2">
           Sort by:
         </label>
         <select
           id="sort"
-          className="block w-full rounded-md border-secondary-300 py-1.5 pl-3 pr-10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+          className="rounded-md border border-secondary-300 py-1.5 pl-3 pr-7 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
           value={sortOrder}
           onChange={handleSortChange}
         >

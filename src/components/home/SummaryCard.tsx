@@ -94,13 +94,13 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
         )}
         
         {summary.relevantPatients && (
-          <div className="mt-4 text-sm text-secondary-600">
+          <div className="mt-4 mb-6 text-sm text-secondary-600">
             <span className="font-medium">Potentially relevant for:</span> {summary.relevantPatients} patients
           </div>
         )}
       </div>
       
-      <div className="p-4 pt-0 border-t border-secondary-100 mt-4">
+      <div className="p-4 pt-2 border-t border-secondary-100 mt-auto">
         <div className="flex flex-wrap gap-2">
           {summary.tags.map((tag) => (
             <span key={tag} className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
