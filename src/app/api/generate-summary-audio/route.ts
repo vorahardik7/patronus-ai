@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     // 3. Upload the audio file to Supabase Storage
     const fileName = `summary-${new Date().toISOString().split('T')[0]}.mp3`;
     
-    const { data: uploadData, error: uploadError } = await supabaseAdmin
+    const { error: uploadError } = await supabaseAdmin
       .storage
       .from('audio-transcripts')
       .upload(fileName, audioBuffer, {

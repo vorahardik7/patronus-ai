@@ -1,7 +1,7 @@
 // src/components/common/DraggableAudioPlayer.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 interface DraggableAudioPlayerProps {
@@ -88,7 +88,7 @@ export default function DraggableAudioPlayer({ audioUrl, title, onClose, initial
     });
   };
   
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
     // Calculate new position based on mouse position and offset
@@ -96,12 +96,12 @@ export default function DraggableAudioPlayer({ audioUrl, title, onClose, initial
       x: e.clientX - dragOffset.x,
       y: e.clientY - dragOffset.y
     });
-  };
-  
-  const handleMouseUp = () => {
+  }, [isDragging, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
-  
+  }, []);
+
   // Add and remove event listeners for dragging
   useEffect(() => {
     if (isDragging) {
@@ -116,7 +116,7 @@ export default function DraggableAudioPlayer({ audioUrl, title, onClose, initial
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, dragOffset]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
   
   // Format time (seconds) to MM:SS
   const formatTime = (seconds: number) => {

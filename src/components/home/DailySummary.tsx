@@ -1,7 +1,7 @@
 // src/components/home/DailySummary.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MeetingWithTags } from '@/types';
 import { PlayIcon, PauseIcon } from '@heroicons/react/24/solid';
 import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
@@ -40,85 +40,8 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
     );
   });
 
-  // Check for cached summary and generate new one if needed
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    const checkCache = async () => {
-      try {
-        // Try to get cached summary from localStorage
-        const cachedDataString = localStorage.getItem('dailySummaryCache');
-        
-        if (cachedDataString) {
-          const cachedData = JSON.parse(cachedDataString) as CachedSummary;
-          
-          // Check if the cache is from today
-          if (cachedData.date === today) {
-            // Check if all today's meetings are included in the cached summary
-            const todayMeetingIds = todayMeetings.map(m => m.id);
-            const allMeetingsIncluded = todayMeetingIds.every(id => 
-              cachedData.meetingIds.includes(id)
-            );
-            
-            // If we have a valid cache, use it
-            if (allMeetingsIncluded || todayMeetingIds.length === 0) {
-              console.log('Using cached daily summary');
-              setAudioUrl(cachedData.audioUrl);
-              setSummaryText(cachedData.summaryText);
-              setIsCached(true);
-              return;
-            }
-          }
-        }
-        
-        // If we have meetings from today and no valid cache, generate a new summary
-        if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
-          generateSummaryAudio();
-        }
-      } catch (error) {
-        console.error('Error checking cache:', error);
-        // If there's an error with the cache, generate a new summary
-        if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
-          generateSummaryAudio();
-        }
-      }
-    };
-    
-    checkCache();
-  }, [meetings, audioUrl, isLoading, todayMeetings]);
-
-  // Set up audio element
-  useEffect(() => {
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      
-      audio.addEventListener('timeupdate', updateProgress);
-      audio.addEventListener('loadedmetadata', () => {
-        setDuration(audio.duration);
-      });
-      audio.addEventListener('ended', () => {
-        setIsPlaying(false);
-        setProgress(0);
-        audio.currentTime = 0;
-      });
-      
-      return () => {
-        audio.pause();
-        audio.removeEventListener('timeupdate', updateProgress);
-        audio.removeEventListener('loadedmetadata', () => {});
-        audio.removeEventListener('ended', () => {});
-      };
-    }
-  }, [audioUrl]);
-  
-  const updateProgress = () => {
-    if (audioRef.current) {
-      const value = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-      setProgress(value);
-    }
-  };
-
-  const generateSummaryAudio = async () => {
+  // Function to generate summary audio
+  const generateSummaryAudio = useCallback(async () => {
     if (todayMeetings.length === 0) return;
     
     setIsLoading(true);
@@ -166,6 +89,84 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
     } finally {
       setIsLoading(false);
     }
+  }, [todayMeetings]);
+
+  // Check for cached summary and generate new one if needed
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const checkCache = async () => {
+      try {
+        // Try to get cached summary from localStorage
+        const cachedDataString = localStorage.getItem('dailySummaryCache');
+        
+        if (cachedDataString) {
+          const cachedData = JSON.parse(cachedDataString) as CachedSummary;
+          
+          // Check if the cache is from today
+          if (cachedData.date === today) {
+            // Check if all today's meetings are included in the cached summary
+            const todayMeetingIds = todayMeetings.map(m => m.id);
+            const allMeetingsIncluded = todayMeetingIds.every(id => 
+              cachedData.meetingIds.includes(id)
+            );
+            
+            // If we have a valid cache, use it
+            if (allMeetingsIncluded || todayMeetingIds.length === 0) {
+              console.log('Using cached daily summary');
+              setAudioUrl(cachedData.audioUrl);
+              setSummaryText(cachedData.summaryText);
+              setIsCached(true);
+              return;
+            }
+          }
+        }
+        
+        // If we have meetings from today and no valid cache, generate a new summary
+        if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
+          generateSummaryAudio();
+        }
+      } catch (error) {
+        console.error('Error checking cache:', error);
+        // If there's an error with the cache, generate a new summary
+        if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
+          generateSummaryAudio();
+        }
+      }
+    };
+    
+    checkCache();
+  }, [meetings, audioUrl, isLoading, todayMeetings, generateSummaryAudio]);
+
+  // Set up audio element
+  useEffect(() => {
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      
+      audio.addEventListener('timeupdate', updateProgress);
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+      });
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+        setProgress(0);
+        audio.currentTime = 0;
+      });
+      
+      return () => {
+        audio.pause();
+        audio.removeEventListener('timeupdate', updateProgress);
+        audio.removeEventListener('loadedmetadata', () => {});
+        audio.removeEventListener('ended', () => {});
+      };
+    }
+  }, [audioUrl]);
+  
+  const updateProgress = () => {
+    if (audioRef.current) {
+      const value = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+      setProgress(value);
+    }
   };
 
   const togglePlayPause = () => {
@@ -209,7 +210,7 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <div>
-            <h2 className="text-xl font-semibold text-secondary-900">Today's Summary</h2>
+            <h2 className="text-xl font-semibold text-secondary-900">Today&apos;s Summary</h2>
             <p className="text-secondary-600 mt-1">
               {todayMeetings.length} {todayMeetings.length === 1 ? 'meeting' : 'meetings'} recorded today
             </p>

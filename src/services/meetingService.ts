@@ -1,6 +1,6 @@
 // src/services/meetingService.ts
 import { supabase } from '@/lib/supabase';
-import { MeetingData, MeetingTag, MeetingAudio, MeetingWithTags } from '@/types';
+import { MeetingData, MeetingWithTags } from '@/types';
 
 /**
  * Fetches all meetings from Supabase with their associated tags

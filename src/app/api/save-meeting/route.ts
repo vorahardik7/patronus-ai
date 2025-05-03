@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Create a Supabase client with the service role key for admin operations
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
-import { v4 as uuidv4 } from 'uuid';
 
 // Helper function to extract key points from transcript
 function extractKeyPointsFromTranscript(transcript: string): string[] {
@@ -163,7 +162,7 @@ export async function POST(request: Request) {
           // Using the recommended approach from Supabase docs
           let publicUrl = '';
           try {
-            const { data: uploadData, error: uploadError } = await supabaseAdmin
+            const { error: uploadError } = await supabaseAdmin
               .storage
               .from('audio-transcripts')
               .upload(fileName, audioBuffer, {

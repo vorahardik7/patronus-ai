@@ -1,6 +1,6 @@
 // src/components/home/ResearchLinks.tsx
 import { useState, useEffect } from 'react';
-import { DocumentTextIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { fetchResearchPapers } from '@/utils/researchApi';
 
 interface ResearchLinksProps {
@@ -26,8 +26,15 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
       
       setLoading(true);
       try {
-        const results = await fetchResearchPapers(tags);
-        setPapers(results);
+        const promises = tags.map(tag => fetchResearchPapers([tag]));
+        const results: Record<string, ResearchPaper | null>[] = await Promise.all(promises);
+        
+        const newPapers: Record<string, ResearchPaper | null> = {};
+        results.forEach((resultObj, index) => {
+          const tag = tags[index]; // Get the corresponding tag
+          newPapers[tag] = resultObj[tag]; // Extract the paper using the tag as key
+        });
+        setPapers(newPapers);
       } catch (error) {
         console.error('Error fetching research papers:', error);
       } finally {
@@ -40,7 +47,7 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
 
   // Filter out null results and limit to showing papers that were found
   const availablePapers = Object.entries(papers)
-    .filter(([_, paper]) => paper !== null)
+    .filter(([paper]) => paper !== null)
     .map(([tag, paper]) => ({ tag, ...paper! }));
 
   if (loading) {
@@ -63,23 +70,22 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
   return (
     <div className="mt-4 pb-6 border-b border-secondary-200">
       <h3 className="text-lg font-medium text-secondary-900 mb-3">Related Research</h3>
-      <ul className="space-y-3">
-        {availablePapers.map((paper, index) => (
-          <li key={index} className="flex items-start">
-            <DocumentTextIcon className="h-5 w-5 mr-3 mt-0.5 text-primary-500 flex-shrink-0" />
-            <div>
+      <ul className="space-y-4 mt-3">
+        {availablePapers.map(({ tag, title, url }, index) => (
+          <li key={index} className="border-b border-secondary-200 pb-3 last:border-b-0">
+            <div className="flex justify-between items-start mb-1">
+              <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                {tag} 
+              </span>
               <a 
-                href={paper.url} 
-                target="_blank" 
+                href={url}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-600 hover:text-primary-800 font-medium flex items-center"
+                className="text-primary-600 hover:text-primary-800 font-medium text-sm flex items-center"
               >
-                {paper.title} 
+                {title} {/* Display title as link text */}
                 <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-1 flex-shrink-0" />
               </a>
-              <p className="text-sm text-secondary-600 mt-1">
-                Relevant to: <span className="font-medium">{paper.tag}</span>
-              </p>
             </div>
           </li>
         ))}

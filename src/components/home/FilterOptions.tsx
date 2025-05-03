@@ -38,21 +38,6 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
     onFilterChange(combinedFilters);
   }, [filters, selectedTags, onFilterChange, isInitialRender]);
 
-  const handleInputChange = useCallback((key: keyof FilterOptionsType, value: string) => {
-    if (value === '') {
-      setFilters(prevFilters => {
-        const newFilters = { ...prevFilters };
-        delete newFilters[key];
-        return newFilters;
-      });
-    } else {
-      setFilters(prevFilters => ({
-        ...prevFilters,
-        [key]: value
-      }));
-    }
-  }, []);
-
   const toggleTag = useCallback((tag: string) => {
     setSelectedTags(prevTags => {
       if (prevTags.includes(tag)) {

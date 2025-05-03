@@ -2,15 +2,11 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
-import "./globals.css";
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'PharmTrack - Pharmaceutical Rep Tracking System',
+  title: 'Patronus AI - Pharmaceutical Rep Tracking System',
   description: 'Track and share conversations between pharmaceutical sales reps and physicians',
 };
 

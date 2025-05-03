@@ -1,9 +1,9 @@
 // src/components/home/SummaryFeed.tsx
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import SummaryCard from './SummaryCard';
-import { Summary, FilterOptions, SortOrder, MeetingWithTags, meetingToSummary } from '@/types';
+import { Summary, FilterOptions, SortOrder, meetingToSummary } from '@/types';
 import { getAllMeetings, searchMeetings } from '@/services/meetingService';
 
 // Mock data for demo purposes

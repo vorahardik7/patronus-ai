@@ -24,7 +24,7 @@ export async function POST(request: Request) {
           content: `You are an AI assistant that analyzes medical sales representative conversations with doctors.
           Extract the following information from the transcript:
           1. Generate a concise, professional title for this meeting (max 10 words)
-          2. Generate 5-10 relevant tags that would be useful for searching this conversation later
+          2. Generate 5 relevant tags that would be useful for searching this conversation later
           3. Extract exactly 5 key points from the conversation (1-2 sentences each)
           
           Format your response as JSON with the following structure:

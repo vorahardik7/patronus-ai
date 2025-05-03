@@ -7,7 +7,6 @@ import {
   ClockIcon, 
   UserIcon, 
   BeakerIcon,
-  AcademicCapIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
 

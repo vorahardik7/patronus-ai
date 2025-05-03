@@ -1,15 +1,11 @@
 "use client"
 
-import { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { MagnifyingGlassIcon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
-export default function Header() {
+const Header: React.FC = () => {
   const pathname = usePathname();
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <header className="bg-white border-b border-secondary-200 sticky top-0 z-30">
@@ -28,21 +24,13 @@ export default function Header() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link 
                 href="/" 
-                className={`${
-                  pathname === '/' 
-                    ? 'border-primary-500 text-secondary-900' 
-                    : 'border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                className={`${pathname === '/' ? 'border-primary-500 text-secondary-900' : 'border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Dashboard
               </Link>
               <Link 
                 href="/record" 
-                className={`${
-                  pathname === '/record' 
-                    ? 'border-primary-500 text-secondary-900' 
-                    : 'border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                className={`${pathname === '/record' ? 'border-primary-500 text-secondary-900' : 'border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Record
               </Link>
@@ -52,4 +40,6 @@ export default function Header() {
       </div>
     </header>
   );
-}
+};
+
+export default Header;
