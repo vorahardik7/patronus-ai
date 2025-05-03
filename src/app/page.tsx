@@ -3,17 +3,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import SummaryFeed from '@/components/home/SummaryFeed';
 import SearchBar from '@/components/home/SearchBar';
-import FilterOptions from '@/components/home/FilterOptions';
 import DailySummary from '@/components/home/DailySummary';
-import { FilterOptions as FilterOptionsType, SortOrder, MeetingWithTags } from '@/types';
+import { SortOrder, MeetingWithTags } from '@/types';
 import { getAllMeetings } from '@/services/meetingService';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<FilterOptionsType>({});
-  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [meetings, setMeetings] = useState<MeetingWithTags[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Memoize callback functions to prevent unnecessary re-renders
   const handleSearch = useCallback((query: string) => {
@@ -21,27 +17,18 @@ export default function Home() {
     setSearchQuery(query);
   }, []);
 
-  const handleFilterChange = useCallback((newFilters: FilterOptionsType) => {
-    console.log('Filters updated:', newFilters);
-    setFilters(newFilters);
-  }, []);
-
   const handleSortChange = useCallback((order: SortOrder) => {
     console.log('Sort order updated:', order);
-    setSortOrder(order);
   }, []);
   
   // Fetch meetings when component mounts
   useEffect(() => {
     const fetchMeetings = async () => {
-      setIsLoading(true);
       try {
         const fetchedMeetings = await getAllMeetings();
         setMeetings(fetchedMeetings);
       } catch (error) {
         console.error('Error fetching meetings:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
     
@@ -57,20 +44,12 @@ export default function Home() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <div className="sticky top-24">
-            <FilterOptions onFilterChange={handleFilterChange} />
-          </div>
-        </div>
-        
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 gap-6">
+        <div>
           <SearchBar onSearch={handleSearch} onSortChange={handleSortChange} />
-          {!isLoading && <DailySummary meetings={meetings} />}
+          <DailySummary meetings={meetings} />
           <SummaryFeed 
-            searchQuery={searchQuery} 
-            filters={filters} 
-            sortOrder={sortOrder}
+            searchQuery={searchQuery}
           />
         </div>
       </div>
