@@ -124,13 +124,8 @@ export default function SummaryFeed({ searchResults }: SummaryFeedProps = {}) {
         
         console.log('Converted search results to summaries:', convertedSummaries);
         
-        // If we have search results, only show those. Otherwise, include mock data
-        if (convertedSummaries.length > 0) {
-          setSummaries(convertedSummaries);
-        } else {
-          // If no search results, include mock data for demonstration
-          setSummaries([...convertedSummaries, ...MOCK_SUMMARIES]);
-        }
+        // Always include mock summaries along with any search results
+        setSummaries([...convertedSummaries, ...MOCK_SUMMARIES]);
       } catch (err) {
         console.error('Error converting search results:', err);
         setError('Failed to process search results');
