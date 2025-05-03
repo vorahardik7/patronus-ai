@@ -1,5 +1,5 @@
 // src/components/home/FilterOptions.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FilterOptions as FilterOptionsType } from '@/types';
 import { 
   FunnelIcon, 
@@ -7,7 +7,6 @@ import {
   BeakerIcon,
   AcademicCapIcon,
   TagIcon,
-  CalendarIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 
@@ -25,49 +24,62 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
   const [filters, setFilters] = useState<FilterOptionsType>({});
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(true);
+  
+  // Skip the first render to avoid unnecessary updates
+  const [isInitialRender, setIsInitialRender] = useState(true);
 
   useEffect(() => {
-    // Update parent component when filters change
-    onFilterChange({
+    if (isInitialRender) {
+      setIsInitialRender(false);
+      return;
+    }
+    
+    const combinedFilters = {
       ...filters,
       tags: selectedTags
-    });
-  }, [filters, selectedTags, onFilterChange]);
+    };
+    
+    onFilterChange(combinedFilters);
+  }, [filters, selectedTags, onFilterChange, isInitialRender]);
 
-  const handleInputChange = (key: keyof FilterOptionsType, value: string) => {
+  const handleInputChange = useCallback((key: keyof FilterOptionsType, value: string) => {
     if (value === '') {
-      const newFilters = { ...filters };
-      delete newFilters[key];
-      setFilters(newFilters);
-    } else {
-      setFilters({
-        ...filters,
-        [key]: value
+      setFilters(prevFilters => {
+        const newFilters = { ...prevFilters };
+        delete newFilters[key];
+        return newFilters;
       });
-    }
-  };
-
-  const toggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
     } else {
-      setSelectedTags([...selectedTags, tag]);
+      setFilters(prevFilters => ({
+        ...prevFilters,
+        [key]: value
+      }));
     }
-  };
+  }, []);
 
-  const resetFilters = () => {
+  const toggleTag = useCallback((tag: string) => {
+    setSelectedTags(prevTags => {
+      if (prevTags.includes(tag)) {
+        return prevTags.filter(t => t !== tag);
+      } else {
+        return [...prevTags, tag];
+      }
+    });
+  }, []);
+
+  const resetFilters = useCallback(() => {
     setFilters({});
     setSelectedTags([]);
-  };
+  }, []);
 
-  const toggleOpen = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleOpen = useCallback(() => {
+    setIsOpen(prev => !prev);
+  }, []);
 
   return (
-    <div className="card">
+    <div className="bg-white rounded-lg shadow-sm border border-secondary-200 overflow-hidden">
       <div 
-        className="p-4 border-b border-secondary-200 flex justify-between items-center cursor-pointer"
+        className="p-4 bg-white border-b border-secondary-200 flex justify-between items-center cursor-pointer"
         onClick={toggleOpen}
       >
         <div className="flex items-center text-secondary-900 font-medium">
@@ -91,7 +103,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
               Hospital
             </label>
             <select 
-              className="input-field py-1.5"
+              className="w-full rounded-md border border-secondary-300 shadow-sm py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
               value={filters.hospital || ''}
               onChange={(e) => handleInputChange('hospital', e.target.value)}
             >
@@ -108,7 +120,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
               Department
             </label>
             <select 
-              className="input-field py-1.5"
+              className="w-full rounded-md border border-secondary-300 shadow-sm py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
               value={filters.department || ''}
               onChange={(e) => handleInputChange('department', e.target.value)}
             >
@@ -125,7 +137,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
               Drug Name
             </label>
             <select 
-              className="input-field py-1.5"
+              className="w-full rounded-md border border-secondary-300 shadow-sm py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
               value={filters.drugName || ''}
               onChange={(e) => handleInputChange('drugName', e.target.value)}
             >
@@ -161,7 +173,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
           <div className="pt-2">
             <button
               onClick={resetFilters}
-              className="btn-secondary w-full flex justify-center items-center"
+              className="w-full flex justify-center items-center py-2 px-4 border border-secondary-300 rounded-md shadow-sm text-sm font-medium text-secondary-700 bg-white hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               <XMarkIcon className="h-4 w-4 mr-1" />
               Reset Filters

@@ -1,4 +1,4 @@
-// src/components/home/SummaryCard.tsx (continued)
+// src/components/home/SummaryCard.tsx
 import { useState } from 'react';
 import { Summary } from '@/types';
 import { 
@@ -24,34 +24,34 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
   };
 
   return (
-    <div className="card overflow-hidden">
-      <div className="p-6">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-secondary-200 h-full flex flex-col hover:shadow-md transition-shadow duration-200">
+      <div className="p-5 flex-grow">
         <div className="flex justify-between items-start">
-          <h2 className="text-xl font-semibold text-secondary-900 mb-2">
+          <h2 className="text-xl font-semibold text-secondary-900 mb-3">
             {summary.title}
           </h2>
           <div className="flex items-center text-xs text-secondary-500">
-            <ClockIcon className="h-4 w-4 mr-1" />
+            <ClockIcon className="h-4 w-4 mr-1 flex-shrink-0" />
             {format(new Date(summary.createdAt), 'MMM d, yyyy')}
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+        <div className="space-y-3 mb-4">
           <div className="flex items-center text-sm text-secondary-600">
-            <BeakerIcon className="h-5 w-5 mr-2 text-primary-500" />
+            <BeakerIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
             <span className="font-medium mr-1">Drug:</span> {summary.drugName}
           </div>
           <div className="flex items-center text-sm text-secondary-600">
-            <UserIcon className="h-5 w-5 mr-2 text-primary-500" />
+            <UserIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
             <span className="font-medium mr-1">Doctor:</span> {summary.doctorName}
           </div>
           <div className="flex items-center text-sm text-secondary-600">
-            <BuildingOfficeIcon className="h-5 w-5 mr-2 text-primary-500" />
+            <BuildingOfficeIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
             <span className="font-medium mr-1">Hospital:</span> {summary.hospital}
           </div>
         </div>
         
-        <div className="mt-4">
+        <div>
           <h3 className="text-md font-medium text-secondary-900 mb-2">Key Points:</h3>
           <ul className="space-y-2">
             {summary.keyPoints.slice(0, expanded ? undefined : 2).map((point, index) => (
@@ -86,7 +86,7 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
         {expanded && summary.additionalDoctors && summary.additionalDoctors.length > 0 && (
           <div className="mt-4">
             <div className="flex items-center text-sm text-secondary-600">
-              <UserGroupIcon className="h-5 w-5 mr-2 text-primary-500" />
+              <UserGroupIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
               <span className="font-medium mr-1">Also relevant for:</span>
               {summary.additionalDoctors.join(', ')}
             </div>
@@ -98,10 +98,12 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
             <span className="font-medium">Potentially relevant for:</span> {summary.relevantPatients} patients
           </div>
         )}
-        
-        <div className="mt-4 flex flex-wrap gap-2">
+      </div>
+      
+      <div className="p-4 pt-0 border-t border-secondary-100 mt-4">
+        <div className="flex flex-wrap gap-2">
           {summary.tags.map((tag) => (
-            <span key={tag} className="tag">
+            <span key={tag} className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
               {tag}
             </span>
           ))}

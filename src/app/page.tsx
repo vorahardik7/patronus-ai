@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import SummaryFeed from '@/components/home/SummaryFeed';
 import SearchBar from '@/components/home/SearchBar';
 import FilterOptions from '@/components/home/FilterOptions';
@@ -11,20 +11,21 @@ export default function Home() {
   const [filters, setFilters] = useState<FilterOptionsType>({});
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
-  const handleSearch = (query: string) => {
+  // Memoize callback functions to prevent infinite re-renders
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     // In a real app, you'd fetch data based on the query
-  };
+  }, []);
 
-  const handleFilterChange = (newFilters: FilterOptionsType) => {
+  const handleFilterChange = useCallback((newFilters: FilterOptionsType) => {
     setFilters(newFilters);
     // In a real app, you'd apply these filters to fetch filtered data
-  };
+  }, []);
 
-  const handleSortChange = (order: SortOrder) => {
+  const handleSortChange = useCallback((order: SortOrder) => {
     setSortOrder(order);
     // In a real app, you'd sort the data accordingly
-  };
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto">

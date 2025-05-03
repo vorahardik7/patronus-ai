@@ -1,5 +1,5 @@
 // src/components/transcribe/RecordingInterface.tsx
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   MicrophoneIcon, 
   StopIcon, 
@@ -22,6 +22,18 @@ export default function RecordingInterface({
   const [recordingTime, setRecordingTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   
+  // Use a ref to store and manage the timer ID
+  const timerRef = useRef<number | null>(null);
+  
+  // Clean up timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+  
   // In a real app, this would be connected to actual recording functionality
   const startRecording = () => {
     onStartRecording();
@@ -31,15 +43,15 @@ export default function RecordingInterface({
       setRecordingTime(prev => prev + 1);
     }, 1000);
     
-    // Store the timer ID in a data attribute for cleanup
-    document.getElementById('recording-timer')?.setAttribute('data-timer-id', String(timer));
+    // Store the timer ID in a ref for cleanup
+    timerRef.current = timer as unknown as number;
   };
   
   const stopRecording = () => {
-    // Clear the timer
-    const timerId = document.getElementById('recording-timer')?.getAttribute('data-timer-id');
-    if (timerId) {
-      clearInterval(Number(timerId));
+    // Clear the timer using the ref
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
     
     onStopRecording();
@@ -47,29 +59,32 @@ export default function RecordingInterface({
   };
   
   const togglePause = () => {
-    setIsPaused(!isPaused);
-    
-    const timerId = document.getElementById('recording-timer')?.getAttribute('data-timer-id');
-    
-    if (isPaused) {
-      // Resume
-      const timer = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-      document.getElementById('recording-timer')?.setAttribute('data-timer-id', String(timer));
-    } else {
-      // Pause
-      if (timerId) {
-        clearInterval(Number(timerId));
+    setIsPaused(prevPaused => {
+      const newPauseState = !prevPaused;
+      
+      if (newPauseState) {
+        // Pausing - clear the interval
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+      } else {
+        // Resuming - create a new interval
+        const timer = setInterval(() => {
+          setRecordingTime(prev => prev + 1);
+        }, 1000);
+        timerRef.current = timer as unknown as number;
       }
-    }
+      
+      return newPauseState;
+    });
   };
   
   const cancelRecording = () => {
-    // Clear the timer
-    const timerId = document.getElementById('recording-timer')?.getAttribute('data-timer-id');
-    if (timerId) {
-      clearInterval(Number(timerId));
+    // Clear the timer using the ref
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
     
     setRecordingTime(0);
@@ -138,7 +153,7 @@ export default function RecordingInterface({
         ) : (
           <>
             <div className="flex justify-center">
-              <div id="recording-timer" className="text-4xl font-semibold text-secondary-900">
+              <div className="text-4xl font-semibold text-secondary-900">
                 {formatTime(recordingTime)}
               </div>
             </div>

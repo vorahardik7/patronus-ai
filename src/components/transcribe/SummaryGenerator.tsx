@@ -1,5 +1,5 @@
 // src/components/transcribe/SummaryGenerator.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TranscriptSegment } from '@/types';
 import { 
   DocumentTextIcon, 
@@ -35,12 +35,16 @@ export default function SummaryGenerator({
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
 
+  // Update editedSummary when summary prop changes
+  useEffect(() => {
+    setEditedSummary(summary);
+  }, [summary]);
+
   const handleGenerateSummary = () => {
     setIsGenerating(true);
     onGenerateSummary();
     setTimeout(() => {
       setIsGenerating(false);
-      setEditedSummary(summary);
     }, 1500);
   };
 
@@ -54,7 +58,6 @@ export default function SummaryGenerator({
 
   const handleStartEdit = () => {
     setEditMode(true);
-    setEditedSummary(summary);
   };
 
   const handleSaveEdit = () => {
@@ -64,13 +67,13 @@ export default function SummaryGenerator({
 
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
+      setTags(prevTags => [...prevTags, newTag.trim()]);
       setNewTag('');
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(prevTags => prevTags.filter(tag => tag !== tagToRemove));
   };
 
   // Prevent default on enter key in tag input to avoid form submission

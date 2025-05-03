@@ -24,7 +24,7 @@ export default function SearchBar({ onSearch, onSortChange }: SearchBarProps) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-center">
+    <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
       <form onSubmit={handleSubmit} className="flex-1 w-full">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -32,14 +32,14 @@ export default function SearchBar({ onSearch, onSortChange }: SearchBarProps) {
           </div>
           <input
             type="text"
-            className="input-field pl-10"
+            className="block w-full rounded-md border-secondary-300 pl-10 pr-20 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             placeholder="Search by drug, doctor, hospital, or keywords..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <button
             type="submit"
-            className="absolute inset-y-0 right-0 btn-primary rounded-l-none"
+            className="absolute inset-y-0 right-0 flex items-center px-4 bg-primary-600 text-white font-medium rounded-r-md hover:bg-primary-700"
           >
             Search
           </button>
@@ -52,7 +52,7 @@ export default function SearchBar({ onSearch, onSortChange }: SearchBarProps) {
         </label>
         <select
           id="sort"
-          className="input-field py-1"
+          className="block w-full rounded-md border-secondary-300 py-1.5 pl-3 pr-10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
           value={sortOrder}
           onChange={handleSortChange}
         >

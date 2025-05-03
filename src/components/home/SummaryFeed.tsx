@@ -66,6 +66,25 @@ const MOCK_SUMMARIES: Summary[] = [
     additionalDoctors: ['Dr. Lisa Park'],
     tags: ['COPD', 'respiratory', 'pulmonology']
   },
+  {
+    id: '4',
+    title: 'GastroEase for IBS',
+    drugName: 'GastroEase',
+    createdAt: '2025-04-22T11:30:00Z',
+    updatedAt: '2025-04-22T11:30:00Z',
+    presenter: 'Thomas Brown',
+    doctorName: 'Dr. Rachel Green',
+    department: 'Gastroenterology',
+    hospital: 'University Hospital',
+    keyPoints: [
+      'Provides relief from IBS symptoms within 2 hours',
+      'Long-lasting effect up to 24 hours',
+      'Minimal digestive side effects',
+      'Can be taken with or without food'
+    ],
+    relevantPatients: 29,
+    tags: ['IBS', 'gastroenterology', 'digestive']
+  },
 ];
 
 interface SummaryFeedProps {
@@ -168,7 +187,7 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
 
   if (loading) {
     return (
-      <div className="mt-6 grid grid-cols-1 gap-6">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map(i => (
           <div key={i} className="card p-6 animate-pulse">
             <div className="h-4 bg-secondary-200 rounded w-3/4 mb-4"></div>
@@ -195,7 +214,7 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
   }
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-6">
+    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {summaries.map(summary => (
         <SummaryCard key={summary.id} summary={summary} />
       ))}
