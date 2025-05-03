@@ -1,6 +1,6 @@
 # Patronus AI
 
-Patronus AI is a comprehensive web application designed to be an extension of Commure's Scribe to be used to record, transcribe, analyze, and organize conversations between pharmaceutical sales representatives and physicians. The platform enables healthcare providers to share key information about pharmaceutical presentations across their entire hospital network, turning isolated meetings into valuable institutional knowledge. This can be applied to both the in-person as well as virtual meetings. Main problem that our solution aims to solve is 'information silos' while making sure that physicians / doctors don't have to put their valuable time in writing / noting down stuff.
+Patronus AI is a comprehensive web application designed as an extension of ***Commure's Scribe*** to record, transcribe, analyze, and organize conversations between pharmaceutical sales representatives and physicians. The platform enables healthcare providers to share key information about pharmaceutical presentations across their entire hospital network, transforming isolated meetings into valuable institutional knowledge. This solution applies to both in-person and virtual meetings. The main problem our solution aims to solve is the challenge of 'information silos' while ensuring that physicians and doctors don't need to spend their valuable time writing or noting down information.
 
 ## Key Features
 
@@ -72,8 +72,8 @@ OPENAI_API_KEY=your_openai_api_key
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/pharmtrack.git
-cd pharmtrack
+git clone https://github.com/vorahardik7/patronus-ai
+cd patronus-ai
 ```
 
 2. Install dependencies
@@ -100,7 +100,7 @@ yarn dev
 ## Project Structure
 
 ```
-pharmtrack/
+patronus-ai/
 ├── public/             # Static assets
 ├── src/
 │   ├── app/            # Next.js app router pages
