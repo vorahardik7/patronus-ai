@@ -1,6 +1,7 @@
-
 // src/components/home/SummaryFeed.tsx
-import { useEffect, useState } from 'react';
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
 import SummaryCard from './SummaryCard';
 import { Summary, FilterOptions, SortOrder } from '@/types';
 
@@ -77,71 +78,93 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Simulate API call with filtering and sorting
-    setLoading(true);
-    setTimeout(() => {
-      let filteredSummaries = [...MOCK_SUMMARIES];
-      
-      // Apply search query
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filteredSummaries = filteredSummaries.filter(summary => 
-          summary.title.toLowerCase().includes(query) ||
-          summary.drugName.toLowerCase().includes(query) ||
-          summary.doctorName.toLowerCase().includes(query) ||
-          summary.hospital.toLowerCase().includes(query) ||
-          summary.department.toLowerCase().includes(query) ||
-          summary.keyPoints.some(point => point.toLowerCase().includes(query)) ||
-          summary.tags.some(tag => tag.toLowerCase().includes(query))
-        );
+  // Use useCallback to memoize the filtering function
+  const filterAndSortSummaries = useCallback(() => {
+    let filteredSummaries = [...MOCK_SUMMARIES];
+    
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filteredSummaries = filteredSummaries.filter(summary => 
+        summary.title.toLowerCase().includes(query) ||
+        summary.drugName.toLowerCase().includes(query) ||
+        summary.doctorName.toLowerCase().includes(query) ||
+        summary.hospital.toLowerCase().includes(query) ||
+        summary.department.toLowerCase().includes(query) ||
+        summary.keyPoints.some(point => point.toLowerCase().includes(query)) ||
+        summary.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+    
+    // Apply filters
+    if (filters.hospital) {
+      filteredSummaries = filteredSummaries.filter(summary => 
+        summary.hospital.toLowerCase().includes(filters.hospital!.toLowerCase())
+      );
+    }
+    
+    if (filters.department) {
+      filteredSummaries = filteredSummaries.filter(summary => 
+        summary.department.toLowerCase() === filters.department!.toLowerCase()
+      );
+    }
+    
+    if (filters.drugName) {
+      filteredSummaries = filteredSummaries.filter(summary => 
+        summary.drugName.toLowerCase().includes(filters.drugName!.toLowerCase())
+      );
+    }
+    
+    if (filters.tags && filters.tags.length > 0) {
+      filteredSummaries = filteredSummaries.filter(summary => 
+        filters.tags!.some(tag => summary.tags.includes(tag))
+      );
+    }
+    
+    // Apply sorting
+    filteredSummaries.sort((a, b) => {
+      if (sortOrder === 'newest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      } else if (sortOrder === 'oldest') {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else {
+        // 'relevance' - For demo, just sort by number of matching tags with filters
+        const aRelevance = filters.tags ? 
+          filters.tags.filter(tag => a.tags.includes(tag)).length : 0;
+        const bRelevance = filters.tags ? 
+          filters.tags.filter(tag => b.tags.includes(tag)).length : 0;
+        return bRelevance - aRelevance;
       }
-      
-      // Apply filters
-      if (filters.hospital) {
-        filteredSummaries = filteredSummaries.filter(summary => 
-          summary.hospital.toLowerCase().includes(filters.hospital!.toLowerCase())
-        );
-      }
-      
-      if (filters.department) {
-        filteredSummaries = filteredSummaries.filter(summary => 
-          summary.department.toLowerCase() === filters.department!.toLowerCase()
-        );
-      }
-      
-      if (filters.drugName) {
-        filteredSummaries = filteredSummaries.filter(summary => 
-          summary.drugName.toLowerCase().includes(filters.drugName!.toLowerCase())
-        );
-      }
-      
-      if (filters.tags && filters.tags.length > 0) {
-        filteredSummaries = filteredSummaries.filter(summary => 
-          filters.tags!.some(tag => summary.tags.includes(tag))
-        );
-      }
-      
-      // Apply sorting
-      filteredSummaries.sort((a, b) => {
-        if (sortOrder === 'newest') {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        } else if (sortOrder === 'oldest') {
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        } else {
-          // 'relevance' - For demo, just sort by number of matching tags with filters
-          const aRelevance = filters.tags ? 
-            filters.tags.filter(tag => a.tags.includes(tag)).length : 0;
-          const bRelevance = filters.tags ? 
-            filters.tags.filter(tag => b.tags.includes(tag)).length : 0;
-          return bRelevance - aRelevance;
-        }
-      });
-      
-      setSummaries(filteredSummaries);
-      setLoading(false);
-    }, 500); // Simulate network delay
+    });
+    
+    return filteredSummaries;
   }, [searchQuery, filters, sortOrder]);
+
+  useEffect(() => {
+    // Use a reference to prevent state updates after unmount
+    let isMounted = true;
+    
+    // Set loading state
+    setLoading(true);
+    
+    // Use a timer ID so we can clear it if needed
+    const timerId = setTimeout(() => {
+      if (isMounted) {
+        // Get filtered and sorted summaries
+        const filteredSummaries = filterAndSortSummaries();
+        
+        // Update state only if still mounted
+        setSummaries(filteredSummaries);
+        setLoading(false);
+      }
+    }, 500);
+    
+    // Cleanup function to prevent updates after unmount
+    return () => {
+      isMounted = false;
+      clearTimeout(timerId);
+    };
+  }, [filterAndSortSummaries]); // Only depend on the memoized function
 
   if (loading) {
     return (
