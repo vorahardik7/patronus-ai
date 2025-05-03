@@ -1,10 +1,18 @@
 // src/components/home/DailySummary.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MeetingWithTags } from '@/types';
 import { PlayIcon, PauseIcon } from '@heroicons/react/24/solid';
 import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
+
+// Interface for cached summary data
+interface CachedSummary {
+  date: string;
+  audioUrl: string;
+  summaryText: string;
+  meetingIds: string[]; // To track which meetings were included in the summary
+}
 
 interface DailySummaryProps {
   meetings: MeetingWithTags[];
@@ -13,9 +21,13 @@ interface DailySummaryProps {
 export default function DailySummary({ meetings }: DailySummaryProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [summaryText, setSummaryText] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [isCached, setIsCached] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Filter meetings from today
   const todayMeetings = meetings.filter(meeting => {
@@ -28,28 +40,83 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
     );
   });
 
-  // Generate summary on component mount if we have meetings from today
+  // Check for cached summary and generate new one if needed
   useEffect(() => {
-    if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
-      generateSummaryAudio();
-    }
-  }, [meetings]);
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const checkCache = async () => {
+      try {
+        // Try to get cached summary from localStorage
+        const cachedDataString = localStorage.getItem('dailySummaryCache');
+        
+        if (cachedDataString) {
+          const cachedData = JSON.parse(cachedDataString) as CachedSummary;
+          
+          // Check if the cache is from today
+          if (cachedData.date === today) {
+            // Check if all today's meetings are included in the cached summary
+            const todayMeetingIds = todayMeetings.map(m => m.id);
+            const allMeetingsIncluded = todayMeetingIds.every(id => 
+              cachedData.meetingIds.includes(id)
+            );
+            
+            // If we have a valid cache, use it
+            if (allMeetingsIncluded || todayMeetingIds.length === 0) {
+              console.log('Using cached daily summary');
+              setAudioUrl(cachedData.audioUrl);
+              setSummaryText(cachedData.summaryText);
+              setIsCached(true);
+              return;
+            }
+          }
+        }
+        
+        // If we have meetings from today and no valid cache, generate a new summary
+        if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
+          generateSummaryAudio();
+        }
+      } catch (error) {
+        console.error('Error checking cache:', error);
+        // If there's an error with the cache, generate a new summary
+        if (todayMeetings.length > 0 && !audioUrl && !isLoading) {
+          generateSummaryAudio();
+        }
+      }
+    };
+    
+    checkCache();
+  }, [meetings, audioUrl, isLoading, todayMeetings]);
 
   // Set up audio element
   useEffect(() => {
-    if (audioUrl && !audioElement) {
+    if (audioUrl) {
       const audio = new Audio(audioUrl);
-      audio.onended = () => setIsPlaying(false);
-      setAudioElement(audio);
+      audioRef.current = audio;
+      
+      audio.addEventListener('timeupdate', updateProgress);
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+      });
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+        setProgress(0);
+        audio.currentTime = 0;
+      });
+      
+      return () => {
+        audio.pause();
+        audio.removeEventListener('timeupdate', updateProgress);
+        audio.removeEventListener('loadedmetadata', () => {});
+        audio.removeEventListener('ended', () => {});
+      };
     }
-    
-    return () => {
-      if (audioElement) {
-        audioElement.pause();
-        audioElement.src = '';
-      }
-    };
   }, [audioUrl]);
+  
+  const updateProgress = () => {
+    if (audioRef.current) {
+      const value = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+      setProgress(value);
+    }
+  };
 
   const generateSummaryAudio = async () => {
     if (todayMeetings.length === 0) return;
@@ -77,7 +144,22 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
       }
       
       const data = await response.json();
+      
+      // Store the data in state
       setAudioUrl(data.audioUrl);
+      setSummaryText(data.summaryText);
+      
+      // Store the data in localStorage for caching
+      const today = new Date().toISOString().split('T')[0];
+      const cacheData: CachedSummary = {
+        date: today,
+        audioUrl: data.audioUrl,
+        summaryText: data.summaryText,
+        meetingIds: todayMeetings.map(m => m.id)
+      };
+      
+      localStorage.setItem('dailySummaryCache', JSON.stringify(cacheData));
+      console.log('Daily summary cached successfully');
     } catch (error) {
       console.error('Error generating summary audio:', error);
       setGenerationError(error instanceof Error ? error.message : 'Unknown error');
@@ -87,15 +169,34 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
   };
 
   const togglePlayPause = () => {
-    if (!audioElement) return;
+    if (!audioRef.current || !audioUrl) return;
     
     if (isPlaying) {
-      audioElement.pause();
+      audioRef.current.pause();
     } else {
-      audioElement.play();
+      audioRef.current.play();
     }
     
     setIsPlaying(!isPlaying);
+  };
+  
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current) return;
+    
+    const seekTo = Number(e.target.value);
+    const seekTime = (seekTo / 100) * audioRef.current.duration;
+    
+    audioRef.current.currentTime = seekTime;
+    setProgress(seekTo);
+  };
+  
+  // Function to clear the cache for testing purposes
+  const clearCache = () => {
+    localStorage.removeItem('dailySummaryCache');
+    setAudioUrl(null);
+    setSummaryText(null);
+    setIsCached(false);
+    console.log('Daily summary cache cleared');
   };
 
   // If no meetings today, don't render the component
@@ -105,12 +206,19 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-secondary-200 p-6 mb-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-secondary-900">Today's Summary</h2>
-          <p className="text-secondary-600 mt-1">
-            {todayMeetings.length} {todayMeetings.length === 1 ? 'meeting' : 'meetings'} recorded today
-          </p>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <div>
+            <h2 className="text-xl font-semibold text-secondary-900">Today's Summary</h2>
+            <p className="text-secondary-600 mt-1">
+              {todayMeetings.length} {todayMeetings.length === 1 ? 'meeting' : 'meetings'} recorded today
+            </p>
+          </div>
+          {isCached && (
+            <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Cached
+            </span>
+          )}
         </div>
         
         <div className="flex items-center">
@@ -130,12 +238,12 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
               {isPlaying ? (
                 <>
                   <PauseIcon className="h-5 w-5 mr-2" />
-                  Pause Summary
+                  Pause
                 </>
               ) : (
                 <>
                   <PlayIcon className="h-5 w-5 mr-2" />
-                  Play Summary
+                  Play
                 </>
               )}
             </button>
@@ -155,6 +263,57 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
           )}
         </div>
       </div>
+      
+      {/* Audio player controls if audio is available */}
+      {audioUrl && isPlaying && (
+        <div className="mt-4 p-3 bg-primary-50 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-secondary-600">
+              {audioRef.current ? 
+                `${Math.floor(audioRef.current.currentTime / 60)}:${String(Math.floor(audioRef.current.currentTime % 60)).padStart(2, '0')}` : 
+                '0:00'
+              } / 
+              {duration ? 
+                `${Math.floor(duration / 60)}:${String(Math.floor(duration % 60)).padStart(2, '0')}` : 
+                '0:00'
+              }
+            </div>
+            {isCached && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Cached Audio
+              </span>
+            )}
+          </div>
+          
+          {/* Progress bar */}
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={progress}
+            onChange={handleSeek}
+            className="w-full h-2 bg-secondary-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+          />
+        </div>
+      )}
+      
+      {/* Display the summary text if available */}
+      {summaryText && (
+        <div className="mt-4 p-4 bg-secondary-50 rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-md font-medium text-secondary-900">Summary</h3>
+            {isCached && (
+              <button
+                onClick={clearCache}
+                className="text-xs text-secondary-500 hover:text-secondary-700 underline"
+              >
+                Clear cache (for testing)
+              </button>
+            )}
+          </div>
+          <p className="text-secondary-700 text-sm whitespace-pre-line">{summaryText}</p>
+        </div>
+      )}
     </div>
   );
 }
