@@ -1,6 +1,7 @@
 // src/components/home/SummaryDetailModal.tsx
 import { Summary } from '@/types';
 import Modal from '@/components/common/Modal';
+import ResearchLinks from './ResearchLinks';
 import { format } from 'date-fns';
 import { 
   ClockIcon, 
@@ -70,6 +71,9 @@ export default function SummaryDetailModal({ isOpen, onClose, summary }: Summary
             ))}
           </ul>
         </div>
+
+        {/* Research Links Section */}
+        <ResearchLinks tags={summary.tags} />
 
         {/* Relevant Patients Section */}
         {summary.relevantPatients && (
