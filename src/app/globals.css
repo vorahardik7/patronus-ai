@@ -1,5 +1,69 @@
+/* In src/app/globals.css */
 @import "tailwindcss";
 
+@theme {
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-200: #e2e8f0;
+  --color-secondary-300: #cbd5e1;
+  --color-secondary-400: #94a3b8;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1e293b;
+  --color-secondary-900: #0f172a;
+  
+  /* Add accent colors for tags */
+  --color-red-100: #fee2e2;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  
+  --color-blue-100: #dbeafe;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  
+  --color-green-100: #dcfce7;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+}
+
+/* Custom component classes */
+@layer components {
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-secondary-200;
+  }
+  
+  .tag {
+    @apply px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700;
+  }
+  
+  .input-field {
+    @apply block w-full rounded-md border border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+  }
+  
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-secondary-700 font-medium rounded-md border border-secondary-300 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+  }
+  
+  .btn-outline {
+    @apply px-4 py-2 bg-white text-primary-600 font-medium rounded-md border border-primary-300 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+  }
+}
 /* Custom styles */
 :root {
   --primary: #4f46e5;
