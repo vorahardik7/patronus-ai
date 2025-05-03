@@ -47,7 +47,7 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
 
   // Filter out null results and limit to showing papers that were found
   const availablePapers = Object.entries(papers)
-    .filter(([, paper]) => paper !== null)
+    .filter(([tag, paper]) => paper !== null)
     .map(([tag, paper]) => ({
       tag,
       ...(paper as ResearchPaper), // Type assertion needed here
@@ -75,12 +75,12 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
       <h3 className="text-lg font-medium text-secondary-900 mb-4">Related Research</h3>
       <ul className="space-y-5 mt-3">
         {availablePapers.slice(0, 3).map(({ tag, title, url }, index) => (
-          <li key={index} className="bg-secondary-50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <li key={index} className="bg-secondary-50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer">
             <a 
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block"
+              className="block cursor-pointer"
             >
               <h4 className="text-primary-700 font-medium text-base mb-2 hover:text-primary-800 transition-colors duration-200 flex items-center">
                 {title}

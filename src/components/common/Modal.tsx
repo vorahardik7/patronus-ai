@@ -67,9 +67,8 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             {title}
           </h2>
           <button
+            className="p-1 ml-auto bg-transparent border-0 text-secondary-500 hover:text-secondary-700 transition-colors float-right text-3xl leading-none font-semibold outline-none focus:outline-none cursor-pointer"
             onClick={onClose}
-            className="p-1 rounded-full text-secondary-500 hover:bg-secondary-100 hover:text-secondary-700 transition-colors"
-            aria-label="Close"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>

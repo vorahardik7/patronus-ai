@@ -70,7 +70,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
           <FunnelIcon className="h-5 w-5 text-secondary-600 mr-2" />
           Filters {selectedTags.length > 0 && `(${selectedTags.length})`}
         </div>
-        <button className="text-secondary-500 hover:text-secondary-700">
+        <button className="text-secondary-500 hover:text-secondary-700 cursor-pointer">
           {isOpen ? (
             <XMarkIcon className="h-5 w-5" />
           ) : (
@@ -91,7 +91,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
                 <button
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                  className={`px-2 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                     selectedTags.includes(tag)
                       ? 'bg-primary-500 text-white'
                       : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
@@ -108,7 +108,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
           <div className="pt-2">
             <button
               onClick={resetFilters}
-              className="w-full flex justify-center items-center py-2 px-4 border border-secondary-300 rounded-md shadow-sm text-sm font-medium text-secondary-700 bg-white hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="w-full flex justify-center items-center py-2 px-4 border border-secondary-300 rounded-md shadow-sm text-sm font-medium text-secondary-700 bg-white hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed"
               disabled={Object.keys(filters).length === 0 && selectedTags.length === 0}
             >
               <XMarkIcon className="h-4 w-4 mr-1" />

@@ -234,11 +234,11 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
           ) : audioUrl ? (
             <button 
               onClick={togglePlayPause}
-              className="flex items-center justify-center bg-primary-100 hover:bg-primary-200 text-primary-800 font-medium py-2 px-4 rounded-full transition-colors duration-200"
+              className="flex items-center justify-center bg-primary-100 hover:bg-primary-200 text-primary-800 font-medium py-2 px-4 rounded-full transition-colors duration-200 cursor-pointer"
             >
               {isPlaying ? (
                 <>
-                  <PauseIcon className="h-5 w-5 mr-2" />
+                  <PauseIcon className="h-5 w-5 mr-2 cu" />
                   Pause
                 </>
               ) : (
