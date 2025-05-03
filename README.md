@@ -132,9 +132,7 @@ cd patronus-ai
 
 2. Install dependencies
 ```bash
-npm install
-# or
-yarn install
+pnpm install
 ```
 
 3. Set up Supabase
@@ -144,9 +142,7 @@ yarn install
 
 4. Run the development server
 ```bash
-npm run dev
-# or
-yarn dev
+pnpm dev
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application
