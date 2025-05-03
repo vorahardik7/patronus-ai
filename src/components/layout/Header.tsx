@@ -20,7 +20,7 @@ export default function Header() {
                 <div className="h-8 w-8 rounded-full bg-primary-600 mr-2 flex items-center justify-center text-white font-bold">
                   P
                 </div>
-                <span className="text-xl font-bold text-secondary-900">PharmTrack</span>
+                <span className="text-xl font-bold text-secondary-900">Patronus AI</span>
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -31,10 +31,10 @@ export default function Header() {
                 Dashboard
               </Link>
               <Link 
-                href="/transcribe" 
+                href="/record" 
                 className="border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               >
-                Transcribe
+                Record
               </Link>
             </div>
           </div>

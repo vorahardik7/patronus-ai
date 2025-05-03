@@ -16,7 +16,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Call OpenAI's GPT-4o to analyze the transcript
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
