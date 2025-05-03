@@ -2,7 +2,6 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
@@ -26,7 +25,6 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col bg-secondary-50">
           <Header />
           <main className="flex-1 p-6 overflow-auto">{children}</main>
-          <Footer />
         </div>
       </body>
     </html>

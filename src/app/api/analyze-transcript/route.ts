@@ -16,7 +16,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Call OpenAI's GPT-4o to analyze the transcript
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -26,11 +25,13 @@ export async function POST(request: Request) {
           Extract the following information from the transcript:
           1. Generate a concise, professional title for this meeting (max 10 words)
           2. Generate 5-10 relevant tags that would be useful for searching this conversation later
+          3. Extract exactly 5 key points from the conversation (1-2 sentences each)
           
           Format your response as JSON with the following structure:
           {
             "title": "Meeting title here",
-            "tags": ["tag1", "tag2", "tag3", ...]
+            "tags": ["tag1", "tag2", "tag3", ...],
+            "keyPoints": ["Key point 1", "Key point 2", "Key point 3", "Key point 4", "Key point 5"]
           }
           
           Only return the JSON, nothing else.`
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       title: analysis.title || 'Untitled Meeting',
       tags: Array.isArray(analysis.tags) ? analysis.tags : [],
+      keyPoints: Array.isArray(analysis.keyPoints) ? analysis.keyPoints : [],
     });
   } catch (error) {
     console.error('Analysis error:', error);

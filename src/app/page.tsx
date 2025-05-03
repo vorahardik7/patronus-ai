@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import SummaryFeed from '@/components/home/SummaryFeed';
 import SearchBar from '@/components/home/SearchBar';
 import FilterOptions from '@/components/home/FilterOptions';
-import { FilterOptions as FilterOptionsType, SortOrder } from '@/types';
+import DailySummary from '@/components/home/DailySummary';
+import { FilterOptions as FilterOptionsType, SortOrder, MeetingWithTags } from '@/types';
+import { getAllMeetings } from '@/services/meetingService';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptionsType>({});
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const [meetings, setMeetings] = useState<MeetingWithTags[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Memoize callback functions to prevent infinite re-renders
   const handleSearch = useCallback((query: string) => {
@@ -25,6 +29,23 @@ export default function Home() {
   const handleSortChange = useCallback((order: SortOrder) => {
     setSortOrder(order);
     // In a real app, you'd sort the data accordingly
+  }, []);
+  
+  // Fetch meetings when component mounts
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedMeetings = await getAllMeetings();
+        setMeetings(fetchedMeetings);
+      } catch (error) {
+        console.error('Error fetching meetings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchMeetings();
   }, []);
 
   return (
@@ -45,6 +66,7 @@ export default function Home() {
         
         <div className="lg:col-span-3">
           <SearchBar onSearch={handleSearch} onSortChange={handleSortChange} />
+          {!isLoading && <DailySummary meetings={meetings} />}
           <SummaryFeed 
             searchQuery={searchQuery} 
             filters={filters} 

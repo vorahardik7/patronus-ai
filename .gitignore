@@ -12,6 +12,8 @@
 
 # req.txt
 /req.txt
+/update-schema.sql
+/supabase-tables.sql
 
 # testing
 /coverage

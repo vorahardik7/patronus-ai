@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Create a Supabase client with the service role key for admin operations
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
 import { v4 as uuidv4 } from 'uuid';
+
+// Helper function to extract key points from transcript
+function extractKeyPointsFromTranscript(transcript: string): string[] {
+  // This is a simplified implementation
+  // In a real app, you might use AI to extract key points
+  
+  // Split by sentences and take the first few that seem important
+  const sentences = transcript.split(/[.!?]\s+/);
+  
+  return sentences
+    .filter(sentence => 
+      sentence.length > 20 && 
+      !sentence.toLowerCase().includes('um') && 
+      !sentence.toLowerCase().includes('uh')
+    )
+    .slice(0, 5) // Limit to 5 key points
+    .map(sentence => sentence.trim() + '.');
+}
 
 export async function POST(request: Request) {
   try {
@@ -17,8 +42,18 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     
     try {
-      // 1. Store the meeting metadata and transcript in the meetings table
-      const { error: meetingError } = await supabase
+      // Extract 5 key points from transcript if not already provided
+      let keyPoints: string[] = [];
+      if (metadata.keyPoints && Array.isArray(metadata.keyPoints) && metadata.keyPoints.length > 0) {
+        // Use key points from metadata if provided
+        keyPoints = metadata.keyPoints.slice(0, 5); // Limit to 5 key points
+      } else {
+        // Extract key points from transcript
+        keyPoints = extractKeyPointsFromTranscript(transcript);
+      }
+      
+      // 1. Store the meeting metadata, transcript, and key points in the meetings table
+      const { error: meetingError } = await supabaseAdmin
         .from('meetings')
         .insert({
           id: meetingId,
@@ -27,6 +62,7 @@ export async function POST(request: Request) {
           drugs_discussed: metadata.drugsDiscussed,
           title: metadata.generatedTitle || 'Untitled Meeting',
           transcript: transcript,
+          key_points: keyPoints,
           created_at: now,
           updated_at: now,
         });
@@ -36,20 +72,20 @@ export async function POST(request: Request) {
         throw new Error(`Failed to store meeting data: ${meetingError.message}`);
       }
       
-      // 2. Store the tags if they exist
+      // 2. Store the tags in the meeting_tags table
       if (metadata.generatedTags && metadata.generatedTags.length > 0) {
-        const tagInserts = metadata.generatedTags.map((tag: string) => ({
+        const tagData = metadata.generatedTags.map((tag: string) => ({
           meeting_id: meetingId,
           tag_name: tag,
           created_at: now,
         }));
         
-        const { error: tagError } = await supabase
+        const { error: tagsError } = await supabaseAdmin
           .from('meeting_tags')
-          .insert(tagInserts);
+          .insert(tagData);
           
-        if (tagError) {
-          console.error('Error storing meeting tags:', tagError);
+        if (tagsError) {
+          console.error('Error storing meeting tags:', tagsError);
           // Continue even if tag storage fails
         }
       }
@@ -125,50 +161,58 @@ export async function POST(request: Request) {
           
           // Upload the audio file to Supabase Storage
           // Using the recommended approach from Supabase docs
-          const { data: uploadData, error: uploadError } = await supabase
-            .storage
-            .from('audio-transcripts')
-            .upload(fileName, audioBuffer, {
-              contentType: contentType,
-              cacheControl: '3600',
-              upsert: true, // Allow overwriting if file exists
-            });
+          let publicUrl = '';
+          try {
+            const { data: uploadData, error: uploadError } = await supabaseAdmin
+              .storage
+              .from('audio-transcripts')
+              .upload(fileName, audioBuffer, {
+                contentType,
+                upsert: true
+              });
             
-          if (uploadError) {
-            console.error('Error uploading audio file:', uploadError);
-            throw new Error(`Failed to upload audio file: ${uploadError.message}`);
+            if (uploadError) {
+              console.error('Error uploading audio file:', uploadError);
+              console.warn('Continuing without audio file due to storage policy issue');
+            } else {
+              // Get the public URL for the uploaded file
+              const { data } = supabaseAdmin
+                .storage
+                .from('audio-transcripts')
+                .getPublicUrl(fileName);
+              
+              const url = data?.publicUrl || '';
+              
+              publicUrl = url;
+            }
+          } catch (error) {
+            console.error('Error in audio upload process:', error);
+            console.warn('Continuing without audio file');
           }
-          
-          // Get the public URL for the uploaded file
-          const { data: { publicUrl } } = supabase
-            .storage
-            .from('audio-transcripts')
-            .getPublicUrl(fileName);
             
           storedAudioUrl = publicUrl;
           
-          // Store the audio file reference in the database
-          console.log('Storing audio reference in meeting_audio table:', {
-            meeting_id: meetingId,
-            audio_url: storedAudioUrl
-          });
-            
-          const { data: audioData, error: audioError } = await supabase
-            .from('meeting_audio')
-            .insert({
-              meeting_id: meetingId,
-              audio_url: storedAudioUrl,
-              created_at: now,
-            })
-            .select();
-            
-          if (audioError) {
-            console.error('Error storing audio reference:', audioError);
-            // Log more details about the error
-            console.error('Error details:', JSON.stringify(audioError));
-            // Continue even if audio reference storage fails
+          // 3. Store the audio reference if available
+          if (storedAudioUrl) {
+            console.log('Storing audio reference in meeting_audio table:', { meeting_id: meetingId, audio_url: storedAudioUrl });
+            const { data: audioData, error: audioError } = await supabaseAdmin
+              .from('meeting_audio')
+              .insert({
+                meeting_id: meetingId,
+                audio_url: storedAudioUrl,
+                created_at: now,
+              })
+              .select();
+                
+            if (audioError) {
+              console.error('Error storing audio reference:', audioError);
+              // Log more details about the error
+              console.error('Error details:', JSON.stringify(audioError));
+            } else {
+              console.log('Successfully stored audio reference:', audioData);
+            }
           } else {
-            console.log('Successfully stored audio reference:', audioData);
+            console.log('No audio URL available to store');
           }
         } catch (audioUploadError) {
           console.error('Error processing audio:', audioUploadError);
