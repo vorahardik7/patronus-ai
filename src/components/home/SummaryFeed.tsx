@@ -3,8 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import SummaryCard from './SummaryCard';
-import { Summary, FilterOptions, SortOrder, meetingToSummary } from '@/types';
+import { Summary, FilterOptions, SortOrder, meetingToSummary, MeetingWithTags } from '@/types';
 import { getAllMeetings, searchMeetings } from '@/services/meetingService';
+import RealtimeSpeechAgent from '../speech/RealtimeSpeechAgent';
 
 // Mock data for demo purposes
 const MOCK_SUMMARIES: Summary[] = [
@@ -86,6 +87,7 @@ interface SummaryFeedProps {
 
 export default function SummaryFeed({ searchQuery, filters, sortOrder }: SummaryFeedProps) {
   const [summaries, setSummaries] = useState<Summary[]>([]);
+  const [fullMeetingsData, setFullMeetingsData] = useState<MeetingWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -96,6 +98,9 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
       setLoading(true);
       try {
         const meetings = await getAllMeetings();
+        
+        // Store the full meeting data
+        setFullMeetingsData(meetings);
         
         // Convert real data to Summary format
         const convertedSummaries = meetings.map(meeting => meetingToSummary(meeting));
@@ -109,6 +114,8 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
       } catch (err) {
         console.error('Error fetching initial meetings:', err);
         setError('Failed to load meetings. Using mock data instead.');
+        // Keep mock data for summaries, clear full data on error?
+        setFullMeetingsData([]);
         setSummaries([...MOCK_SUMMARIES]);
       } finally {
         setLoading(false);
@@ -134,6 +141,9 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
           // First search for meetings that match the query
           const searchResults = await searchMeetings(searchQuery);
           
+          // Store the full meeting data from search
+          setFullMeetingsData(searchResults);
+          
           // Convert to Summary format
           let searchedSummaries = searchResults.map(meeting => meetingToSummary(meeting));
           
@@ -151,6 +161,10 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
           const convertedSummaries = meetings.map(meeting => meetingToSummary(meeting));
           const allSummaries = [...convertedSummaries, ...MOCK_SUMMARIES];
           
+          // Also store the full data when loading all for local filtering
+          const allFullMeetings = [...meetings]; // Assuming no mock data has full MeetingWithTags structure
+          setFullMeetingsData(allFullMeetings);
+
           // If we have a 1-2 character search, filter locally
           let filteredSummaries = allSummaries;
           if (searchQuery && searchQuery.length < 3) {
@@ -168,6 +182,9 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
           filteredSummaries = applyFiltersAndSort(filteredSummaries, filters, sortOrder);
           
           setSummaries(filteredSummaries);
+
+          // Optionally filter the full data too if needed immediately, but for now 
+          // the primary goal is just to have it available
         }
         
         setError(null);
@@ -255,19 +272,33 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
   // Render empty state
   if (summaries.length === 0) {
     return (
-      <div className="mt-6 card p-8 text-center">
-        <p className="text-secondary-600 mb-2">No drug summaries found</p>
-        <p className="text-secondary-500 text-sm">Try adjusting your search or filters</p>
+      <div>
+        {/* Speech Agent Button */}
+        <div className="flex justify-end mb-4">
+          <RealtimeSpeechAgent meetings={fullMeetingsData} isActive={true} />
+        </div>
+        
+        <div className="mt-6 card p-8 text-center">
+          <p className="text-secondary-600 mb-2">No drug summaries found</p>
+          <p className="text-secondary-500 text-sm">Try adjusting your search or filters</p>
+        </div>
       </div>
     );
   }
 
   // Render summaries
   return (
-    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {summaries.map(summary => (
-        <SummaryCard key={summary.id} summary={summary} />
-      ))}
+    <div>
+      {/* Speech Agent Button */}
+      {/* <div className="flex justify-end mb-4">
+        <RealtimeSpeechAgent meetings={fullMeetingsData} isActive={true} />
+      </div> */}
+      
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        {summaries.map(summary => (
+          <SummaryCard key={summary.id} summary={summary} />
+        ))}
+      </div>
     </div>
   );
 }

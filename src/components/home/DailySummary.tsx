@@ -4,11 +4,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MeetingWithTags } from '@/types';
 import { PlayIcon, PauseIcon } from '@heroicons/react/24/solid';
-import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { SpeakerWaveIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import RealtimeSpeechAgent from '../speech/RealtimeSpeechAgent';
 
 // Interface for cached summary data
 interface CachedSummary {
-  date: string;
+  date: string; 
   audioUrl: string;
   summaryText: string;
   meetingIds: string[]; // To track which meetings were included in the summary
@@ -232,7 +233,16 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
               Generating summary...
             </div>
           ) : audioUrl ? (
-            <button 
+            <>
+              {/* Add the RealtimeSpeechAgent here */}
+              <div className="flex items-center">
+                <RealtimeSpeechAgent 
+                  meetings={todayMeetings} 
+                  isActive={true} 
+                  className="mr-4"
+                />
+              </div>
+              <button 
               onClick={togglePlayPause}
               className="flex items-center justify-center bg-primary-100 hover:bg-primary-200 text-primary-800 font-medium py-2 px-4 rounded-full transition-colors duration-200 cursor-pointer"
             >
@@ -248,6 +258,8 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
                 </>
               )}
             </button>
+            </>
+            
           ) : generationError ? (
             <div className="flex items-center text-red-600">
               <span className="mr-2">❌</span>
@@ -303,16 +315,36 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
         <div className="mt-4 p-4 bg-secondary-50 rounded-lg">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-md font-medium text-secondary-900">Summary</h3>
-            {isCached && (
-              <button
-                onClick={clearCache}
-                className="text-xs text-secondary-500 hover:text-secondary-700 underline"
-              >
-                Clear cache (for testing)
-              </button>
-            )}
+            <div className="flex items-center space-x-4">
+            
+              
+              {isCached && (
+                <button
+                  onClick={clearCache}
+                  className="text-xs text-secondary-500 hover:text-secondary-700 underline"
+                >
+                  Clear cache (for testing)
+                </button>
+              )}
+            </div>
           </div>
           <p className="text-secondary-700 text-sm whitespace-pre-line">{summaryText}</p>
+        </div>
+      )}
+      
+      {/* Show the RealtimeSpeechAgent even if there's no summary yet */}
+      {!summaryText && todayMeetings.length > 0 && (
+        <div className="mt-4 p-4 bg-secondary-50 rounded-lg">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2 text-secondary-600" />
+              <h3 className="text-md font-medium text-secondary-900">Ask about today's meetings</h3>
+            </div>
+            <RealtimeSpeechAgent 
+              meetings={todayMeetings} 
+              isActive={true}
+            />
+          </div>
         </div>
       )}
     </div>
