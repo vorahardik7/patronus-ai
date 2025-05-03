@@ -1,36 +1,167 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Patronus AI
 
-## Getting Started
+Patronus AI is a comprehensive web application designed to be an extension of Commure's Scribe to be used to record, transcribe, analyze, and organize conversations between pharmaceutical sales representatives and physicians. The platform enables healthcare providers to share key information about pharmaceutical presentations across their entire hospital network, turning isolated meetings into valuable institutional knowledge. This can be applied to both the in-person as well as virtual meetings. Main problem that our solution aims to solve is 'information silos' while making sure that physicians / doctors don't have to put their valuable time in writing / noting down stuff.
 
-First, run the development server:
+## Key Features
 
+- **Conversation Recording & Transcription**: Record meetings with pharmaceutical representatives and get instant, accurate transcripts using OpenAI's Whisper API.
+- **AI-Powered Analysis**: Automatically extract key points, relevant tags, and generate meeting titles using GPT-4o.
+- **Advanced Search**: Find information by drug name, doctor, keywords, or tags with a powerful search engine backed by Supabase.
+- **Daily Audio Summaries**: Get AI-generated audio summaries of your daily meetings using OpenAI's TTS API.
+- **Clinical Research Integration**: Automatically link discussions to relevant clinical trials through the ClinicalTrials.gov API.
+- **Tag-Based Organization**: Categorize meetings with auto-generated tags for easy discovery and retrieval.
+
+## Technology Stack
+
+### Frontend
+- **Next.js 15.3**: App router and server components for optimized rendering
+- **React 19**: Latest React features and hooks
+- **TailwindCSS 4**: For responsive, utility-first styling
+- **Heroicons**: High-quality SVG icons
+- **date-fns**: Date formatting and manipulation
+
+
+### Backend & Data
+- **Supabase**: Backend as a service with PostgreSQL database
+- **Next.js API Routes**: Serverless functions for API endpoints
+- **OpenAI API Integration**: 
+  - GPT-4o: For advanced transcript analysis
+  - Whisper: For audio transcription
+  - TTS-1: For generating audio summaries
+
+### APIs & Integrations
+- **OpenAI**: For AI capabilities (transcription, analysis, speech synthesis)
+- **ClinicalTrials.gov API**: For fetching relevant research papers based on meeting tags
+- **Supabase Storage**: For storing and serving audio recordings
+
+## Preview
+Check out our preview web-app here: https://patronusai.vercel.app/
+
+## App Screenshots
+### Dashboard (Homepage)
+![Screenshot 2025-05-03 at 7 11 04 AM](https://github.com/user-attachments/assets/123da61a-ce39-456f-ae94-28525ebfbc0a)
+
+### Detailed Summary Card View
+![Screenshot 2025-05-03 at 7 12 15 AM](https://github.com/user-attachments/assets/7e49ef2f-f75c-433a-875d-60cd1565cfd4)
+
+### Transcribe Landing Page
+![Screenshot 2025-05-03 at 7 12 49 AM](https://github.com/user-attachments/assets/36996fc1-7b7f-4d57-a6d8-4f906257ec8a)
+
+### Transcribe Submission Page
+![Screenshot 2025-05-03 at 7 14 39 AM](https://github.com/user-attachments/assets/a417139a-746c-4ed6-8ad4-eeaaf0a38fc9)
+
+## If You Want to Build the Web-App Locally: 
+
+### Prerequisites
+- Node.js 20+
+- npm or yarn
+- Supabase account
+- OpenAI API key
+
+### Environment Setup
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/pharmtrack.git
+cd pharmtrack
+```
+
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Set up Supabase
+   - Create a new Supabase project
+   - Run the SQL schema in `supabase-tables.sql` to set up the required tables
+   - Create a storage bucket named `audio-transcripts` with public read access
+
+4. Run the development server
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+pharmtrack/
+├── public/             # Static assets
+├── src/
+│   ├── app/            # Next.js app router pages
+│   │   ├── api/        # API routes for backend functionality
+│   │   ├── globals.css # Global styles
+│   │   ├── layout.tsx  # Root layout component
+│   │   └── page.tsx    # Home page component
+│   ├── components/     # React components
+│   │   ├── common/     # Shared UI components
+│   │   ├── home/       # Home page specific components
+│   │   └── layout/     # Layout components (header, sidebar)
+│   ├── lib/            # Shared libraries/utilities
+│   ├── services/       # Service layer for data access
+│   ├── types/          # TypeScript type definitions
+│   └── utils/          # Utility functions
+└── package.json        # Dependencies and scripts
+```
 
-## Learn More
+## Key Components
 
-To learn more about Next.js, take a look at the following resources:
+### Recording Interface
+Record, transcribe, and analyze conversations with pharmaceutical representatives:
+- Real-time audio recording
+- Automatic transcription via Whisper API
+- Key points extraction and tag generation via GPT-4o
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Dashboard & Search
+Browse and search through meeting summaries:
+- Filtering by tags
+- Full-text search across titles, content, and tags
+- Sort by date or relevance
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Daily Summaries
+Get daily audio summaries of all meetings:
+- AI-generated summaries of key points
+- Text-to-speech conversion via OpenAI's TTS API
 
-## Deploy on Vercel
+## API Endpoints
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application provides the following API endpoints:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `POST /api/transcribe`: Transcribes audio recordings using OpenAI's Whisper API
+- `POST /api/analyze-transcript`: Analyzes transcripts to extract key points and tags using GPT-4o
+- `POST /api/save-meeting`: Saves meeting data to Supabase
+- `POST /api/generate-summary-audio`: Generates audio summaries using OpenAI's TTS API
+
+## Future Development
+
+- **Analytics Dashboard**: Insights into drug discussions and trends over time
+- **User Authentication**: Role-based access for different hospital staff
+- **Mobile Application**: Dedicated mobile app for on-the-go recording
+- **Calendar Integration**: Connect with hospital calendars for scheduled recordings
+- **Email Notifications**: Alert relevant departments about new drug information
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [OpenAI](https://openai.com) for providing the AI models that power our analysis
+- [Supabase](https://supabase.com) for the database and storage infrastructure
+- [Next.js](https://nextjs.org) and the Vercel team for the amazing framework
+- [ClinicalTrials.gov](https://clinicaltrials.gov) for providing research data
