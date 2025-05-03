@@ -47,8 +47,11 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
 
   // Filter out null results and limit to showing papers that were found
   const availablePapers = Object.entries(papers)
-    .filter(([paper]) => paper !== null)
-    .map(([tag, paper]) => ({ tag, ...paper! }));
+    .filter(([tag, paper]) => paper !== null)
+    .map(([tag, paper]) => ({
+      tag,
+      ...(paper as ResearchPaper), // Type assertion needed here
+    }));
 
   if (loading) {
     return (
@@ -69,24 +72,26 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
 
   return (
     <div className="mt-4 pb-6 border-b border-secondary-200">
-      <h3 className="text-lg font-medium text-secondary-900 mb-3">Related Research</h3>
-      <ul className="space-y-4 mt-3">
-        {availablePapers.map(({ tag, title, url }, index) => (
-          <li key={index} className="border-b border-secondary-200 pb-3 last:border-b-0">
-            <div className="flex justify-between items-start mb-1">
-              <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                {tag} 
-              </span>
-              <a 
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:text-primary-800 font-medium text-sm flex items-center"
-              >
-                {title} {/* Display title as link text */}
-                <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-1 flex-shrink-0" />
-              </a>
-            </div>
+      <h3 className="text-lg font-medium text-secondary-900 mb-4">Related Research</h3>
+      <ul className="space-y-5 mt-3">
+        {availablePapers.slice(0, 3).map(({ tag, title, url }, index) => (
+          <li key={index} className="bg-secondary-50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <a 
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <h4 className="text-primary-700 font-medium text-base mb-2 hover:text-primary-800 transition-colors duration-200 flex items-center">
+                {title}
+                <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-2 flex-shrink-0" />
+              </h4>
+              <div className="flex items-center mt-2">
+                <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold px-2.5 py-1 rounded-full capitalize">
+                  {tag}
+                </span>
+              </div>
+            </a>
           </li>
         ))}
       </ul>

@@ -45,10 +45,19 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-secondary-900 bg-opacity-75">
+    <div 
+      className={`fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden outline-none focus:outline-none ${
+        isOpen ? 'block' : 'hidden'
+      }`}
+      onClick={onClose} // Close modal when clicking outside
+    >
+      {/* Background overlay - lighter background */}
+      <div className="fixed inset-0 bg-black/40"></div> {/* Changed from bg-black/75 to bg-black/40 */} 
+
+      {/* Modal content - improved styling */}
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden relative z-10"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
