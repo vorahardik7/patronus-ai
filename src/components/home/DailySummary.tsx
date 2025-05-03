@@ -216,7 +216,7 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
         <div className="flex items-center">
           <div className="mr-4">
             <div>
-              <h2 className="text-xl font-semibold text-secondary-900">Today's Summary</h2>
+              <h2 className="text-xl font-semibold text-secondary-900">Today&apos;s Summary</h2>
               <p className="text-secondary-600 mt-1">
                 {todayMeetings.length} {todayMeetings.length === 1 ? 'meeting' : 'meetings'} recorded today
               </p>
@@ -363,7 +363,7 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
                   <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2 text-secondary-600" />
-                  <h3 className="text-md font-medium text-secondary-900">Ask about today's meetings</h3>
+                  <h3 className="text-md font-medium text-secondary-900">Ask about today&apos;s meetings</h3>
                 </div>
               </div>
             </div>
