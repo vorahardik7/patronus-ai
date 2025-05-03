@@ -87,83 +87,127 @@ interface SummaryFeedProps {
 export default function SummaryFeed({ searchQuery, filters, sortOrder }: SummaryFeedProps) {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [useRealData, setUseRealData] = useState(true);
-  const [supabaseMeetings, setSupabaseMeetings] = useState<MeetingWithTags[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch meetings from Supabase when component mounts
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  
+  // Fetch initial data on component mount
   useEffect(() => {
-    async function fetchMeetings() {
+    async function fetchInitialData() {
       setLoading(true);
       try {
         const meetings = await getAllMeetings();
-        setSupabaseMeetings(meetings);
+        
         // Convert real data to Summary format
         const convertedSummaries = meetings.map(meeting => meetingToSummary(meeting));
         
-        // Combine real data with mock data
-        // This ensures we always show some data for demonstration purposes
-        setSummaries([...convertedSummaries, ...MOCK_SUMMARIES]);
-        
-        // If we have real data, set useRealData to true
-        setUseRealData(meetings && meetings.length > 0);
+        // Combine real data with mock data for demo purposes
+        // In production, you'd likely just use the real data
+        const allSummaries = [...convertedSummaries, ...MOCK_SUMMARIES];
+        setSummaries(allSummaries);
         
         console.log(`Loaded ${meetings.length} real meetings and ${MOCK_SUMMARIES.length} mock meetings`);
       } catch (err) {
-        console.error('Error fetching meetings:', err);
+        console.error('Error fetching initial meetings:', err);
         setError('Failed to load meetings. Using mock data instead.');
-        setUseRealData(false);
         setSummaries([...MOCK_SUMMARIES]);
       } finally {
         setLoading(false);
+        setInitialDataLoaded(true);
       }
     }
 
-    fetchMeetings();
+    fetchInitialData();
   }, []);
 
-  // Use useCallback to memoize the filtering function
-  const filterAndSortSummaries = useCallback(() => {
-    // Always use the combined data that includes both real and mock summaries
-    let filteredSummaries = [...summaries];
-    
-    // Apply search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+  // Handle search, filter, and sort in a single useEffect
+  useEffect(() => {
+    if (!initialDataLoaded) return;
+
+    const performSearchAndFilter = async () => {
+      setLoading(true);
       
-      // If using real data and we have a search query, fetch from Supabase
-      if (useRealData && query.length > 0) {
-        // This will be handled by the searchEffect below
-        return filteredSummaries;
+      try {
+        // For significant search queries (3+ chars), fetch from the database
+        if (searchQuery && searchQuery.length >= 3) {
+          console.log(`Searching database for: "${searchQuery}"`);
+          
+          // First search for meetings that match the query
+          const searchResults = await searchMeetings(searchQuery);
+          
+          // Convert to Summary format
+          let searchedSummaries = searchResults.map(meeting => meetingToSummary(meeting));
+          
+          // Also search specifically in tags (if not already found)
+          // We need to make sure the searchMeetings function properly searches in tags
+          
+          // Apply filters
+          searchedSummaries = applyFiltersAndSort(searchedSummaries, filters, sortOrder);
+          
+          console.log(`Found ${searchedSummaries.length} results from database search`);
+          setSummaries(searchedSummaries);
+        } else {
+          // For empty/short search, load all data again and apply filters locally
+          const meetings = await getAllMeetings();
+          const convertedSummaries = meetings.map(meeting => meetingToSummary(meeting));
+          const allSummaries = [...convertedSummaries, ...MOCK_SUMMARIES];
+          
+          // If we have a 1-2 character search, filter locally
+          let filteredSummaries = allSummaries;
+          if (searchQuery && searchQuery.length < 3) {
+            const query = searchQuery.toLowerCase();
+            filteredSummaries = allSummaries.filter(summary => 
+              summary.title.toLowerCase().includes(query) ||
+              summary.drugName.toLowerCase().includes(query) ||
+              summary.doctorName.toLowerCase().includes(query) ||
+              summary.keyPoints.some(point => point.toLowerCase().includes(query)) ||
+              summary.tags.some(tag => tag.toLowerCase().includes(query))
+            );
+          }
+          
+          // Apply other filters and sorting
+          filteredSummaries = applyFiltersAndSort(filteredSummaries, filters, sortOrder);
+          
+          setSummaries(filteredSummaries);
+        }
+        
+        setError(null);
+      } catch (err) {
+        console.error('Error in search and filter:', err);
+        setError('An error occurred while searching or filtering. Please try again.');
+      } finally {
+        setLoading(false);
       }
-      
-      // Otherwise filter the existing data
-      filteredSummaries = filteredSummaries.filter(summary => 
-        summary.title.toLowerCase().includes(query) ||
-        summary.drugName.toLowerCase().includes(query) ||
-        summary.doctorName.toLowerCase().includes(query) ||
-        summary.keyPoints.some(point => point.toLowerCase().includes(query)) ||
-        summary.tags.some(tag => tag.toLowerCase().includes(query))
-      );
-    }
+    };
+
+    // Use debounce to prevent too many API calls
+    const debounceTimeout = setTimeout(() => {
+      performSearchAndFilter();
+    }, 300);
+
+    return () => clearTimeout(debounceTimeout);
+  }, [searchQuery, filters, sortOrder, initialDataLoaded]);
+
+  // Helper function to apply filters and sorting
+  const applyFiltersAndSort = (items: Summary[], filters: FilterOptions, sortOrder: SortOrder): Summary[] => {
+    let result = [...items];
     
-    // Apply filters
+    // Apply date range filter
     if (filters.dateRange) {
-      filteredSummaries = filteredSummaries.filter(summary => {
+      result = result.filter(summary => {
         const createdDate = new Date(summary.createdAt);
         return createdDate >= filters.dateRange!.start && createdDate <= filters.dateRange!.end;
       });
     }
     
-
+    // Apply tags filter
     if (filters.tags && filters.tags.length > 0) {
-      filteredSummaries = filteredSummaries.filter(summary => 
+      result = result.filter(summary => 
         filters.tags!.some(tag => summary.tags.includes(tag))
       );
     }
     
     // Apply sorting
-    filteredSummaries.sort((a, b) => {
+    result.sort((a, b) => {
       if (sortOrder === 'newest') {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortOrder === 'oldest') {
@@ -176,69 +220,10 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
       }
     });
     
-    return filteredSummaries;
-  }, [searchQuery, filters, sortOrder, useRealData, supabaseMeetings]);
+    return result;
+  };
 
-  // Effect for searching in Supabase when using real data
-  useEffect(() => {
-    async function performSearch() {
-      if (useRealData && searchQuery && searchQuery.length > 2) {
-        setLoading(true);
-        try {
-          const searchResults = await searchMeetings(searchQuery);
-          setSupabaseMeetings(searchResults);
-          // Convert to Summary format
-          const convertedSummaries = searchResults.map(meeting => meetingToSummary(meeting));
-          setSummaries(convertedSummaries);
-        } catch (err) {
-          console.error('Error searching meetings:', err);
-          setError('Failed to search meetings. Using local filtering instead.');
-          // Fall back to local filtering
-          setSummaries(filterAndSortSummaries());
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // Use the regular filter function for non-search or mock data scenarios
-        setSummaries(filterAndSortSummaries());
-        setLoading(false);
-      }
-    }
-
-    // Debounce search to avoid too many API calls
-    const debounceTimeout = setTimeout(() => {
-      performSearch();
-    }, 300);
-
-    return () => clearTimeout(debounceTimeout);
-  }, [searchQuery, filterAndSortSummaries, useRealData]);
-
-  useEffect(() => {
-    // Use a reference to prevent state updates after unmount
-    let isMounted = true;
-    
-    // Set loading state
-    setLoading(true);
-    
-    // Use a timer ID so we can clear it if needed
-    const timerId = setTimeout(() => {
-      if (isMounted) {
-        // Get filtered and sorted summaries
-        const filteredSummaries = filterAndSortSummaries();
-        
-        // Update state only if still mounted
-        setSummaries(filteredSummaries);
-        setLoading(false);
-      }
-    }, 500);
-    
-    // Cleanup function to prevent updates after unmount
-    return () => {
-      isMounted = false;
-      clearTimeout(timerId);
-    };
-  }, [filterAndSortSummaries]); // Only depend on the memoized function
-
+  // Render loading state
   if (loading) {
     return (
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -258,6 +243,16 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
     );
   }
 
+  // Render error state
+  if (error) {
+    return (
+      <div className="mt-6 card p-6 border-red-300 bg-red-50">
+        <p className="text-red-700">{error}</p>
+      </div>
+    );
+  }
+
+  // Render empty state
   if (summaries.length === 0) {
     return (
       <div className="mt-6 card p-8 text-center">
@@ -267,6 +262,7 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
     );
   }
 
+  // Render summaries
   return (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {summaries.map(summary => (
