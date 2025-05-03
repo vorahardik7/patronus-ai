@@ -48,41 +48,6 @@ export default function Header() {
               </Link>
             </div>
           </div>
-          <div className="flex items-center">
-            <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              <button 
-                type="button" 
-                className="bg-white p-1 rounded-full text-secondary-400 hover:text-secondary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <span className="sr-only">Search</span>
-                <MagnifyingGlassIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-              <div className="ml-3 relative">
-                <button
-                  type="button"
-                  className="bg-white p-1 rounded-full text-secondary-400 hover:text-secondary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                >
-                  <span className="sr-only">View notifications</span>
-                  <BellIcon className="h-6 w-6" aria-hidden="true" />
-                </button>
-                {/* Notification dropdown would go here */}
-              </div>
-              <div className="ml-3 relative">
-                <div>
-                  <button
-                    type="button"
-                    className="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    <UserCircleIcon className="h-8 w-8 text-secondary-400" />
-                  </button>
-                </div>
-                {/* Profile dropdown would go here */}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </header>
