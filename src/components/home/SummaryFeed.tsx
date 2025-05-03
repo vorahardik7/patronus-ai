@@ -3,8 +3,13 @@
 
 import { useEffect, useState } from 'react';
 import SummaryCard from './SummaryCard';
-import { Summary, meetingToSummary } from '@/types';
+import { Summary, meetingToSummary, MeetingWithTags } from '@/types';
 import { getAllMeetings } from '@/services/meetingService';
+
+// Props interface for SummaryFeed
+interface SummaryFeedProps {
+  searchResults?: MeetingWithTags[];
+}
 
 // Mock data for demo purposes
 const MOCK_SUMMARIES: Summary[] = [
@@ -78,37 +83,94 @@ const MOCK_SUMMARIES: Summary[] = [
   },
 ];
 
-export default function SummaryFeed() {
+export default function SummaryFeed({ searchResults }: SummaryFeedProps = {}) {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Fetch initial data on component mount
+  // Update summaries when searchResults change
   useEffect(() => {
-    async function fetchInitialData() {
+    if (searchResults) {
+      console.log('Received search results:', searchResults);
       setLoading(true);
+      
       try {
-        const meetings = await getAllMeetings();
+        // Convert search results to Summary format
+        const convertedSummaries = searchResults.map((meeting) => {
+          // Ensure meeting has all required fields before conversion
+          if (!meeting) {
+            console.warn('Received undefined meeting in searchResults');
+            return null;
+          }
+          
+          console.log('Converting meeting:', meeting);
+          
+          // Ensure meeting has required fields
+          const safetyMeeting = {
+            ...meeting,
+            id: meeting.id || 'unknown-id',
+            title: meeting.title || 'Untitled Meeting',
+            drugs_discussed: meeting.drugs_discussed || 'Unknown Drug',
+            created_at: meeting.created_at || new Date().toISOString(),
+            updated_at: meeting.updated_at || new Date().toISOString(),
+            rep_name: meeting.rep_name || 'Unknown Presenter',
+            doctor_name: meeting.doctor_name || 'Unknown Doctor',
+            tags: meeting.tags || [],
+            transcript: meeting.transcript || ''
+          };
+          
+          return meetingToSummary(safetyMeeting);
+        }).filter(Boolean) as Summary[]; // Filter out any null values
         
-        // Convert real data to Summary format
-        const convertedSummaries = meetings.map((meeting) => meetingToSummary(meeting));
+        console.log('Converted search results to summaries:', convertedSummaries);
         
-        // Combine real data with mock data for demo purposes
-        const allSummaries = [...convertedSummaries, ...MOCK_SUMMARIES];
-        setSummaries(allSummaries);
-        
-        console.log(`Loaded ${meetings.length} real meetings and ${MOCK_SUMMARIES.length} mock meetings`);
+        // If we have search results, only show those. Otherwise, include mock data
+        if (convertedSummaries.length > 0) {
+          setSummaries(convertedSummaries);
+        } else {
+          // If no search results, include mock data for demonstration
+          setSummaries([...convertedSummaries, ...MOCK_SUMMARIES]);
+        }
       } catch (err) {
-        console.error('Error fetching initial meetings:', err);
-        setError('Failed to load meetings. Using mock data instead.');
+        console.error('Error converting search results:', err);
+        setError('Failed to process search results');
+        // Fall back to mock data
         setSummaries([...MOCK_SUMMARIES]);
       } finally {
         setLoading(false);
       }
     }
+  }, [searchResults]);
+  
+  // Fetch initial data on component mount if no searchResults provided
+  useEffect(() => {
+    // Only fetch initial data if searchResults is not provided
+    if (!searchResults) {
+      async function fetchInitialData() {
+        setLoading(true);
+        try {
+          const meetings = await getAllMeetings();
+          
+          // Convert real data to Summary format
+          const convertedSummaries = meetings.map((meeting) => meetingToSummary(meeting));
+          
+          // Combine real data with mock data for demo purposes
+          const allSummaries = [...convertedSummaries, ...MOCK_SUMMARIES];
+          setSummaries(allSummaries);
+          
+          console.log(`Loaded ${meetings.length} real meetings and ${MOCK_SUMMARIES.length} mock meetings`);
+        } catch (err) {
+          console.error('Error fetching initial meetings:', err);
+          setError('Failed to load meetings. Using mock data instead.');
+          setSummaries([...MOCK_SUMMARIES]);
+        } finally {
+          setLoading(false);
+        }
+      }
 
-    fetchInitialData();
-  }, []);
+      fetchInitialData();
+    }
+  }, [searchResults]);
 
   // Render loading state
   if (loading && !summaries.length) {
