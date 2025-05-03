@@ -15,20 +15,20 @@ export default function Home() {
   const [meetings, setMeetings] = useState<MeetingWithTags[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Memoize callback functions to prevent infinite re-renders
+  // Memoize callback functions to prevent unnecessary re-renders
   const handleSearch = useCallback((query: string) => {
+    console.log('Search query updated:', query);
     setSearchQuery(query);
-    // In a real app, you'd fetch data based on the query
   }, []);
 
   const handleFilterChange = useCallback((newFilters: FilterOptionsType) => {
+    console.log('Filters updated:', newFilters);
     setFilters(newFilters);
-    // In a real app, you'd apply these filters to fetch filtered data
   }, []);
 
   const handleSortChange = useCallback((order: SortOrder) => {
+    console.log('Sort order updated:', order);
     setSortOrder(order);
-    // In a real app, you'd sort the data accordingly
   }, []);
   
   // Fetch meetings when component mounts

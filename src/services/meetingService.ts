@@ -129,11 +129,14 @@ export async function getMeetingById(id: string): Promise<MeetingWithTags | null
 
 /**
  * Search meetings by query string
+ * This improved version searches both meeting data and tags
  */
 export async function searchMeetings(query: string): Promise<MeetingWithTags[]> {
   try {
-    // Search in meetings table
-    const { data: meetings, error: meetingsError } = await supabase
+    console.log(`Performing search for query: "${query}"`);
+    
+    // Step 1: First search meetings table for direct matches
+    const { data: directMatches, error: meetingsError } = await supabase
       .from('meetings')
       .select('*')
       .or(`title.ilike.%${query}%,doctor_name.ilike.%${query}%,rep_name.ilike.%${query}%,transcript.ilike.%${query}%,drugs_discussed.ilike.%${query}%`)
@@ -144,30 +147,34 @@ export async function searchMeetings(query: string): Promise<MeetingWithTags[]> 
       return [];
     }
 
-    if (!meetings || meetings.length === 0) {
-      return [];
-    }
-
-    // Also search in tags
+    console.log(`Found ${directMatches?.length || 0} direct matches in meetings table`);
+    
+    // Step 2: Search in tags table for tag matches
     const { data: tagMatches, error: tagsError } = await supabase
       .from('meeting_tags')
-      .select('meeting_id')
+      .select('meeting_id, tag_name')
       .ilike('tag_name', `%${query}%`);
 
     if (tagsError) {
       console.error('Error searching meeting tags:', tagsError);
     }
 
-    // Get meeting IDs from tag matches
-    const tagMatchIds = tagMatches ? tagMatches.map(match => match.meeting_id) : [];
-
-    // Fetch any meetings that matched by tag but weren't in the original results
+    console.log(`Found ${tagMatches?.length || 0} matches in tags table`);
+    
+    // Get unique meeting IDs from tag matches
+    const tagMatchIds = tagMatches 
+      ? [...new Set(tagMatches.map(match => match.meeting_id))] 
+      : [];
+    
+    // Step 3: Fetch any meetings that matched by tag but weren't in the direct results
     let additionalMeetings: MeetingData[] = [];
     if (tagMatchIds.length > 0) {
-      const meetingIds = meetings.map(m => m.id);
-      const missingIds = tagMatchIds.filter(id => !meetingIds.includes(id));
+      const directMatchIds = directMatches ? directMatches.map(m => m.id) : [];
+      const missingIds = tagMatchIds.filter(id => !directMatchIds.includes(id));
       
       if (missingIds.length > 0) {
+        console.log(`Fetching ${missingIds.length} additional meetings matched by tags`);
+        
         const { data: taggedMeetings, error } = await supabase
           .from('meetings')
           .select('*')
@@ -181,12 +188,17 @@ export async function searchMeetings(query: string): Promise<MeetingWithTags[]> 
       }
     }
 
-    // Combine all matching meetings
-    const allMeetings = [...meetings, ...additionalMeetings];
+    // Step 4: Combine all matching meetings (both direct and tag matches)
+    const allMeetings = [...(directMatches || []), ...additionalMeetings];
+    
+    if (allMeetings.length === 0) {
+      return [];
+    }
+    
     const meetingIds = allMeetings.map(meeting => meeting.id);
 
-    // Fetch tags for all meetings
-    const { data: tags, error: allTagsError } = await supabase
+    // Step 5: Fetch all tags for all matching meetings
+    const { data: allTags, error: allTagsError } = await supabase
       .from('meeting_tags')
       .select('*')
       .in('meeting_id', meetingIds);
@@ -195,7 +207,7 @@ export async function searchMeetings(query: string): Promise<MeetingWithTags[]> 
       console.error('Error fetching all meeting tags:', allTagsError);
     }
 
-    // Fetch audio URLs for all meetings
+    // Step 6: Fetch audio URLs for all matching meetings
     const { data: audioRecords, error: audioError } = await supabase
       .from('meeting_audio')
       .select('*')
@@ -205,10 +217,10 @@ export async function searchMeetings(query: string): Promise<MeetingWithTags[]> 
       console.error('Error fetching meeting audio records:', audioError);
     }
 
-    // Combine meetings with their tags and audio URLs
+    // Step 7: Combine meetings with their tags and audio URLs
     const meetingsWithTags: MeetingWithTags[] = allMeetings.map(meeting => {
-      const meetingTags = tags 
-        ? tags
+      const meetingTags = allTags 
+        ? allTags
             .filter(tag => tag.meeting_id === meeting.id)
             .map(tag => tag.tag_name)
         : [];
@@ -224,6 +236,7 @@ export async function searchMeetings(query: string): Promise<MeetingWithTags[]> 
       };
     });
 
+    console.log(`Returning ${meetingsWithTags.length} total search results`);
     return meetingsWithTags;
   } catch (error) {
     console.error('Error in searchMeetings:', error);

@@ -7,7 +7,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 
-// Mock data for filters
+// Mock data for filters - in a real application, you would fetch these from the database
 const TAGS = ['hypertension', 'cardiology', 'alzheimer\'s', 'neurology', 'COPD', 'respiratory'];
 
 interface FilterOptionsProps {
@@ -28,9 +28,11 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
       return;
     }
     
+    console.log('Filter options updated:', { ...filters, tags: selectedTags });
+    
     const combinedFilters = {
       ...filters,
-      tags: selectedTags
+      tags: selectedTags.length > 0 ? selectedTags : undefined
     };
     
     onFilterChange(combinedFilters);
@@ -54,14 +56,17 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
   const toggleTag = useCallback((tag: string) => {
     setSelectedTags(prevTags => {
       if (prevTags.includes(tag)) {
+        console.log(`Removing tag filter: ${tag}`);
         return prevTags.filter(t => t !== tag);
       } else {
+        console.log(`Adding tag filter: ${tag}`);
         return [...prevTags, tag];
       }
     });
   }, []);
 
   const resetFilters = useCallback(() => {
+    console.log('Resetting all filters');
     setFilters({});
     setSelectedTags([]);
   }, []);
@@ -78,7 +83,7 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
       >
         <div className="flex items-center text-secondary-900 font-medium">
           <FunnelIcon className="h-5 w-5 text-secondary-600 mr-2" />
-          Filters
+          Filters {selectedTags.length > 0 && `(${selectedTags.length})`}
         </div>
         <button className="text-secondary-500 hover:text-secondary-700">
           {isOpen ? (
@@ -113,10 +118,13 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
             </div>
           </div>
           
+          {/* Additional filters could be added here */}
+          
           <div className="pt-2">
             <button
               onClick={resetFilters}
               className="w-full flex justify-center items-center py-2 px-4 border border-secondary-300 rounded-md shadow-sm text-sm font-medium text-secondary-700 bg-white hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              disabled={Object.keys(filters).length === 0 && selectedTags.length === 0}
             >
               <XMarkIcon className="h-4 w-4 mr-1" />
               Reset Filters
