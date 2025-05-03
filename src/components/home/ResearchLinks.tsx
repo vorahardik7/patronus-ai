@@ -47,7 +47,7 @@ export default function ResearchLinks({ tags }: ResearchLinksProps) {
 
   // Filter out null results and limit to showing papers that were found
   const availablePapers = Object.entries(papers)
-    .filter(([tag, paper]) => paper !== null)
+    .filter(([, paper]) => paper !== null)
     .map(([tag, paper]) => ({
       tag,
       ...(paper as ResearchPaper), // Type assertion needed here
