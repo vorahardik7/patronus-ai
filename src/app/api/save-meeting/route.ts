@@ -2,6 +2,24 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
+// Helper function to extract key points from transcript
+function extractKeyPointsFromTranscript(transcript: string): string[] {
+  // This is a simplified implementation
+  // In a real app, you might use AI to extract key points
+  
+  // Split by sentences and take the first few that seem important
+  const sentences = transcript.split(/[.!?]\s+/);
+  
+  return sentences
+    .filter(sentence => 
+      sentence.length > 20 && 
+      !sentence.toLowerCase().includes('um') && 
+      !sentence.toLowerCase().includes('uh')
+    )
+    .slice(0, 5) // Limit to 5 key points
+    .map(sentence => sentence.trim() + '.');
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -17,7 +35,17 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     
     try {
-      // 1. Store the meeting metadata and transcript in the meetings table
+      // Extract 5 key points from transcript if not already provided
+      let keyPoints: string[] = [];
+      if (metadata.keyPoints && Array.isArray(metadata.keyPoints) && metadata.keyPoints.length > 0) {
+        // Use key points from metadata if provided
+        keyPoints = metadata.keyPoints.slice(0, 5); // Limit to 5 key points
+      } else {
+        // Extract key points from transcript
+        keyPoints = extractKeyPointsFromTranscript(transcript);
+      }
+      
+      // 1. Store the meeting metadata, transcript, and key points in the meetings table
       const { error: meetingError } = await supabase
         .from('meetings')
         .insert({
@@ -27,6 +55,7 @@ export async function POST(request: Request) {
           drugs_discussed: metadata.drugsDiscussed,
           title: metadata.generatedTitle || 'Untitled Meeting',
           transcript: transcript,
+          key_points: keyPoints,
           created_at: now,
           updated_at: now,
         });

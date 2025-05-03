@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { MagnifyingGlassIcon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
 export default function Header() {
+  const pathname = usePathname();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -26,13 +28,21 @@ export default function Header() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link 
                 href="/" 
-                className="border-primary-500 text-secondary-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  pathname === '/' 
+                    ? 'border-primary-500 text-secondary-900' 
+                    : 'border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Dashboard
               </Link>
               <Link 
                 href="/record" 
-                className="border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`${
+                  pathname === '/record' 
+                    ? 'border-primary-500 text-secondary-900' 
+                    : 'border-transparent text-secondary-500 hover:border-secondary-300 hover:text-secondary-700'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Record
               </Link>

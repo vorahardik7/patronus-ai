@@ -38,10 +38,6 @@ export default function SummaryDetailModal({ isOpen, onClose, summary }: Summary
             <span className="font-medium mr-1">Doctor:</span> {summary.doctorName}
           </div>
           <div className="flex items-center text-sm text-secondary-600">
-            <AcademicCapIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
-            <span className="font-medium mr-1">Department:</span> {summary.department}
-          </div>
-          <div className="flex items-center text-sm text-secondary-600">
             <UserCircleIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
             <span className="font-medium mr-1">Presenter:</span> {summary.presenter}
           </div>

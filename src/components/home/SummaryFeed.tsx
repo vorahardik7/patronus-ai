@@ -3,7 +3,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import SummaryCard from './SummaryCard';
-import { Summary, FilterOptions, SortOrder } from '@/types';
+import { Summary, FilterOptions, SortOrder, MeetingWithTags, meetingToSummary } from '@/types';
+import { getAllMeetings, searchMeetings } from '@/services/meetingService';
 
 // Mock data for demo purposes
 const MOCK_SUMMARIES: Summary[] = [
@@ -15,7 +16,6 @@ const MOCK_SUMMARIES: Summary[] = [
     updatedAt: '2025-05-01T10:30:00Z',
     presenter: 'Jane Smith',
     doctorName: 'Dr. Michael Chen',
-    department: 'Cardiology',
     keyPoints: [
       'Reduces blood pressure by 20% more effectively than leading competitors',
       'Minimal side effects in clinical trials',
@@ -33,7 +33,6 @@ const MOCK_SUMMARIES: Summary[] = [
     updatedAt: '2025-04-28T14:15:00Z',
     presenter: 'Mark Wilson',
     doctorName: 'Dr. Emily Rodriguez',
-    department: 'Neurology',
     keyPoints: [
       'Shows promising results in slowing cognitive decline',
       'Improves memory function in early-stage patients',
@@ -51,7 +50,6 @@ const MOCK_SUMMARIES: Summary[] = [
     updatedAt: '2025-04-25T16:20:00Z',
     presenter: 'Amanda Johnson',
     doctorName: 'Dr. James Wilson',
-    department: 'Pulmonology',
     keyPoints: [
       'Improves lung function within 48 hours',
       'Reduces hospitalization rates by 35%',
@@ -69,7 +67,6 @@ const MOCK_SUMMARIES: Summary[] = [
     updatedAt: '2025-04-22T11:30:00Z',
     presenter: 'Thomas Brown',
     doctorName: 'Dr. Rachel Green',
-    department: 'Gastroenterology',
     keyPoints: [
       'Provides relief from IBS symptoms within 2 hours',
       'Long-lasting effect up to 24 hours',
@@ -90,32 +87,75 @@ interface SummaryFeedProps {
 export default function SummaryFeed({ searchQuery, filters, sortOrder }: SummaryFeedProps) {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [useRealData, setUseRealData] = useState(true);
+  const [supabaseMeetings, setSupabaseMeetings] = useState<MeetingWithTags[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch meetings from Supabase when component mounts
+  useEffect(() => {
+    async function fetchMeetings() {
+      setLoading(true);
+      try {
+        const meetings = await getAllMeetings();
+        setSupabaseMeetings(meetings);
+        // Convert real data to Summary format
+        const convertedSummaries = meetings.map(meeting => meetingToSummary(meeting));
+        
+        // Combine real data with mock data
+        // This ensures we always show some data for demonstration purposes
+        setSummaries([...convertedSummaries, ...MOCK_SUMMARIES]);
+        
+        // If we have real data, set useRealData to true
+        setUseRealData(meetings && meetings.length > 0);
+        
+        console.log(`Loaded ${meetings.length} real meetings and ${MOCK_SUMMARIES.length} mock meetings`);
+      } catch (err) {
+        console.error('Error fetching meetings:', err);
+        setError('Failed to load meetings. Using mock data instead.');
+        setUseRealData(false);
+        setSummaries([...MOCK_SUMMARIES]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMeetings();
+  }, []);
 
   // Use useCallback to memoize the filtering function
   const filterAndSortSummaries = useCallback(() => {
-    let filteredSummaries = [...MOCK_SUMMARIES];
+    // Always use the combined data that includes both real and mock summaries
+    let filteredSummaries = [...summaries];
     
     // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
+      
+      // If using real data and we have a search query, fetch from Supabase
+      if (useRealData && query.length > 0) {
+        // This will be handled by the searchEffect below
+        return filteredSummaries;
+      }
+      
+      // Otherwise filter the existing data
       filteredSummaries = filteredSummaries.filter(summary => 
         summary.title.toLowerCase().includes(query) ||
         summary.drugName.toLowerCase().includes(query) ||
         summary.doctorName.toLowerCase().includes(query) ||
-        summary.department.toLowerCase().includes(query) ||
         summary.keyPoints.some(point => point.toLowerCase().includes(query)) ||
         summary.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
     
     // Apply filters
-    if (filters.department) {
-      filteredSummaries = filteredSummaries.filter(summary => 
-        summary.department.toLowerCase() === filters.department!.toLowerCase()
-      );
+    if (filters.dateRange) {
+      filteredSummaries = filteredSummaries.filter(summary => {
+        const createdDate = new Date(summary.createdAt);
+        return createdDate >= filters.dateRange!.start && createdDate <= filters.dateRange!.end;
+      });
     }
-
     
+
     if (filters.tags && filters.tags.length > 0) {
       filteredSummaries = filteredSummaries.filter(summary => 
         filters.tags!.some(tag => summary.tags.includes(tag))
@@ -129,17 +169,49 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else {
-        // 'relevance' - For demo, just sort by number of matching tags with filters
-        const aRelevance = filters.tags ? 
-          filters.tags.filter(tag => a.tags.includes(tag)).length : 0;
-        const bRelevance = filters.tags ? 
-          filters.tags.filter(tag => b.tags.includes(tag)).length : 0;
+        // For relevance, we'll sort by number of relevant patients (if available)
+        const aRelevance = a.relevantPatients || 0;
+        const bRelevance = b.relevantPatients || 0;
         return bRelevance - aRelevance;
       }
     });
     
     return filteredSummaries;
-  }, [searchQuery, filters, sortOrder]);
+  }, [searchQuery, filters, sortOrder, useRealData, supabaseMeetings]);
+
+  // Effect for searching in Supabase when using real data
+  useEffect(() => {
+    async function performSearch() {
+      if (useRealData && searchQuery && searchQuery.length > 2) {
+        setLoading(true);
+        try {
+          const searchResults = await searchMeetings(searchQuery);
+          setSupabaseMeetings(searchResults);
+          // Convert to Summary format
+          const convertedSummaries = searchResults.map(meeting => meetingToSummary(meeting));
+          setSummaries(convertedSummaries);
+        } catch (err) {
+          console.error('Error searching meetings:', err);
+          setError('Failed to search meetings. Using local filtering instead.');
+          // Fall back to local filtering
+          setSummaries(filterAndSortSummaries());
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Use the regular filter function for non-search or mock data scenarios
+        setSummaries(filterAndSortSummaries());
+        setLoading(false);
+      }
+    }
+
+    // Debounce search to avoid too many API calls
+    const debounceTimeout = setTimeout(() => {
+      performSearch();
+    }, 300);
+
+    return () => clearTimeout(debounceTimeout);
+  }, [searchQuery, filterAndSortSummaries, useRealData]);
 
   useEffect(() => {
     // Use a reference to prevent state updates after unmount
