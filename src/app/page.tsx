@@ -8,13 +8,12 @@ import { SortOrder, MeetingWithTags } from '@/types';
 import { getAllMeetings } from '@/services/meetingService';
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [meetings, setMeetings] = useState<MeetingWithTags[]>([]);
 
   // Memoize callback functions to prevent unnecessary re-renders
   const handleSearch = useCallback((query: string) => {
     console.log('Search query updated:', query);
-    setSearchQuery(query);
+    // We're logging the search query but not storing it since it's handled by the SearchBar component
   }, []);
 
   const handleSortChange = useCallback((order: SortOrder) => {
@@ -48,9 +47,7 @@ export default function Home() {
         <div>
           <SearchBar onSearch={handleSearch} onSortChange={handleSortChange} />
           <DailySummary meetings={meetings} />
-          <SummaryFeed 
-            searchQuery={searchQuery}
-          />
+          <SummaryFeed />
         </div>
       </div>
     </div>

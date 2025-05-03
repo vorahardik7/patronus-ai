@@ -78,12 +78,7 @@ const MOCK_SUMMARIES: Summary[] = [
   },
 ];
 
-interface SummaryFeedProps {
-  // Make searchQuery optional so component can be used standalone
-  searchQuery?: string;
-}
-
-export default function SummaryFeed({ searchQuery = '' }: SummaryFeedProps) {
+export default function SummaryFeed() {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

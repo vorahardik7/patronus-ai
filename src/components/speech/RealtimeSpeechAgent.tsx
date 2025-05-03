@@ -1,7 +1,7 @@
 // src/components/speech/RealtimeSpeechAgent.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MeetingWithTags } from '@/types';
 
 interface RealtimeSpeechAgentProps {
@@ -153,11 +153,10 @@ export default function RealtimeSpeechAgent({ meetings, isActive = false, classN
 const configureSession = () => {
   if (!dataChannelRef.current) return;
   
-  // Get today's date in ISO format (YYYY-MM-DD)
-  const today = new Date().toISOString().split('T')[0];
-  
-  // Filter meetings for today if needed
   // For now, we'll use all meetings to ensure comprehensive context
+  // If we need to filter by date in the future, we can use:  
+  // const today = new Date().toISOString().split('T')[0];
+  
   const relevantMeetings = meetings;
   
   console.log(`Configuring speech agent with ${relevantMeetings.length} meetings as context`);
@@ -272,8 +271,8 @@ const configureSession = () => {
     }
   };
   
-  // Clean up the session
-  const cleanupSession = () => {
+  // Clean up the session - memoized with useCallback to prevent recreation on each render
+  const cleanupSession = useCallback(() => {
     // Stop audio playback
     stopAudioPlayback();
     
@@ -300,21 +299,21 @@ const configureSession = () => {
     setSessionActive(false);
     setIsListening(false);
     setListeningState('idle');
-  };
+  }, []);  // Empty dependency array since we're using refs for all the resources
   
   // Clean up on unmount
   useEffect(() => {
     return () => {
       cleanupSession();
     };
-  }, []);
+  }, [cleanupSession]);  // Now safe to include cleanupSession since it's memoized
   
   // When isActive prop changes (component is shown/hidden)
   useEffect(() => {
     if (!isActive && sessionActive) {
       cleanupSession();
     }
-  }, [isActive, sessionActive]);
+  }, [isActive, sessionActive, cleanupSession]);  // Now safe to include cleanupSession since it's memoized
   
   // Get button text and styles based on listening state
   const getButtonContent = () => {
