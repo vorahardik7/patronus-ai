@@ -16,7 +16,6 @@ const MOCK_SUMMARIES: Summary[] = [
     presenter: 'Jane Smith',
     doctorName: 'Dr. Michael Chen',
     department: 'Cardiology',
-    hospital: 'Metro General Hospital',
     keyPoints: [
       'Reduces blood pressure by 20% more effectively than leading competitors',
       'Minimal side effects in clinical trials',
@@ -24,7 +23,6 @@ const MOCK_SUMMARIES: Summary[] = [
       'Once-daily dosing for better compliance'
     ],
     relevantPatients: 45,
-    additionalDoctors: ['Dr. Sarah Johnson', 'Dr. Robert Lee'],
     tags: ['hypertension', 'cardiology', 'blood pressure']
   },
   {
@@ -36,7 +34,6 @@ const MOCK_SUMMARIES: Summary[] = [
     presenter: 'Mark Wilson',
     doctorName: 'Dr. Emily Rodriguez',
     department: 'Neurology',
-    hospital: 'Central Hospital',
     keyPoints: [
       'Shows promising results in slowing cognitive decline',
       'Improves memory function in early-stage patients',
@@ -55,7 +52,6 @@ const MOCK_SUMMARIES: Summary[] = [
     presenter: 'Amanda Johnson',
     doctorName: 'Dr. James Wilson',
     department: 'Pulmonology',
-    hospital: 'Metro General Hospital',
     keyPoints: [
       'Improves lung function within 48 hours',
       'Reduces hospitalization rates by 35%',
@@ -63,7 +59,6 @@ const MOCK_SUMMARIES: Summary[] = [
       'New inhalation device improves drug delivery to lungs'
     ],
     relevantPatients: 38,
-    additionalDoctors: ['Dr. Lisa Park'],
     tags: ['COPD', 'respiratory', 'pulmonology']
   },
   {
@@ -75,7 +70,6 @@ const MOCK_SUMMARIES: Summary[] = [
     presenter: 'Thomas Brown',
     doctorName: 'Dr. Rachel Green',
     department: 'Gastroenterology',
-    hospital: 'University Hospital',
     keyPoints: [
       'Provides relief from IBS symptoms within 2 hours',
       'Long-lasting effect up to 24 hours',
@@ -108,7 +102,6 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
         summary.title.toLowerCase().includes(query) ||
         summary.drugName.toLowerCase().includes(query) ||
         summary.doctorName.toLowerCase().includes(query) ||
-        summary.hospital.toLowerCase().includes(query) ||
         summary.department.toLowerCase().includes(query) ||
         summary.keyPoints.some(point => point.toLowerCase().includes(query)) ||
         summary.tags.some(tag => tag.toLowerCase().includes(query))
@@ -116,23 +109,12 @@ export default function SummaryFeed({ searchQuery, filters, sortOrder }: Summary
     }
     
     // Apply filters
-    if (filters.hospital) {
-      filteredSummaries = filteredSummaries.filter(summary => 
-        summary.hospital.toLowerCase().includes(filters.hospital!.toLowerCase())
-      );
-    }
-    
     if (filters.department) {
       filteredSummaries = filteredSummaries.filter(summary => 
         summary.department.toLowerCase() === filters.department!.toLowerCase()
       );
     }
-    
-    if (filters.drugName) {
-      filteredSummaries = filteredSummaries.filter(summary => 
-        summary.drugName.toLowerCase().includes(filters.drugName!.toLowerCase())
-      );
-    }
+
     
     if (filters.tags && filters.tags.length > 0) {
       filteredSummaries = filteredSummaries.filter(summary => 
