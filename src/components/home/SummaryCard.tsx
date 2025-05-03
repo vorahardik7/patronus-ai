@@ -4,9 +4,7 @@ import { Summary } from '@/types';
 import { 
   ClockIcon, 
   UserIcon, 
-  BuildingOfficeIcon, 
   BeakerIcon, 
-  UserGroupIcon,
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
@@ -45,10 +43,6 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
             <UserIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
             <span className="font-medium mr-1">Doctor:</span> {summary.doctorName}
           </div>
-          <div className="flex items-center text-sm text-secondary-600">
-            <BuildingOfficeIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
-            <span className="font-medium mr-1">Hospital:</span> {summary.hospital}
-          </div>
         </div>
         
         <div>
@@ -82,16 +76,6 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
             </button>
           )}
         </div>
-        
-        {expanded && summary.additionalDoctors && summary.additionalDoctors.length > 0 && (
-          <div className="mt-4">
-            <div className="flex items-center text-sm text-secondary-600">
-              <UserGroupIcon className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
-              <span className="font-medium mr-1">Also relevant for:</span>
-              {summary.additionalDoctors.join(', ')}
-            </div>
-          </div>
-        )}
         
         {summary.relevantPatients && (
           <div className="mt-4 mb-6 text-sm text-secondary-600">

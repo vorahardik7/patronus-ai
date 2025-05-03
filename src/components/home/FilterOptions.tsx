@@ -3,17 +3,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { FilterOptions as FilterOptionsType } from '@/types';
 import { 
   FunnelIcon, 
-  BuildingOfficeIcon, 
-  BeakerIcon,
   AcademicCapIcon,
   TagIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 
 // Mock data for filters
-const HOSPITALS = ['Metro General Hospital', 'Central Hospital', 'City Medical Center', 'University Hospital'];
 const DEPARTMENTS = ['Cardiology', 'Neurology', 'Oncology', 'Pulmonology', 'Gastroenterology'];
-const DRUG_NAMES = ['Cardiofix', 'NeuroCare', 'RespiClear', 'OncoShield', 'GastroEase'];
 const TAGS = ['hypertension', 'cardiology', 'alzheimer\'s', 'neurology', 'COPD', 'respiratory'];
 
 interface FilterOptionsProps {
@@ -99,23 +95,6 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
         <div className="p-4 space-y-5">
           <div>
             <label className="flex items-center text-sm font-medium text-secondary-700 mb-2">
-              <BuildingOfficeIcon className="h-4 w-4 mr-1" />
-              Hospital
-            </label>
-            <select 
-              className="w-full rounded-md border border-secondary-300 shadow-sm py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              value={filters.hospital || ''}
-              onChange={(e) => handleInputChange('hospital', e.target.value)}
-            >
-              <option value="">All Hospitals</option>
-              {HOSPITALS.map(hospital => (
-                <option key={hospital} value={hospital}>{hospital}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="flex items-center text-sm font-medium text-secondary-700 mb-2">
               <AcademicCapIcon className="h-4 w-4 mr-1" />
               Department
             </label>
@@ -127,23 +106,6 @@ export default function FilterOptions({ onFilterChange }: FilterOptionsProps) {
               <option value="">All Departments</option>
               {DEPARTMENTS.map(department => (
                 <option key={department} value={department}>{department}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="flex items-center text-sm font-medium text-secondary-700 mb-2">
-              <BeakerIcon className="h-4 w-4 mr-1" />
-              Drug Name
-            </label>
-            <select 
-              className="w-full rounded-md border border-secondary-300 shadow-sm py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              value={filters.drugName || ''}
-              onChange={(e) => handleInputChange('drugName', e.target.value)}
-            >
-              <option value="">All Drugs</option>
-              {DRUG_NAMES.map(drug => (
-                <option key={drug} value={drug}>{drug}</option>
               ))}
             </select>
           </div>
