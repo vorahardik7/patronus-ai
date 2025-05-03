@@ -8,6 +8,7 @@ Patronus AI is a comprehensive web application designed as an extension of ***Co
 - **AI-Powered Analysis**: Automatically extract key points, relevant tags, and generate meeting titles using GPT-4o.
 - **Advanced Search**: Find information by drug name, doctor, keywords, or tags with a powerful search engine backed by Supabase.
 - **Daily Audio Summaries**: Get AI-generated audio summaries of your daily meetings using OpenAI's TTS API.
+- **AI Agent for Summaries**: Ask the AI Agent any questions or doubts about todays summaries.
 - **Clinical Research Integration**: Automatically link discussions to relevant clinical trials through the ClinicalTrials.gov API.
 - **Tag-Based Organization**: Categorize meetings with auto-generated tags for easy discovery and retrieval.
 
@@ -39,10 +40,10 @@ Check out our preview web-app here: https://patronusai.vercel.app/
 
 ## App Screenshots
 ### Dashboard (Homepage)
-![Screenshot 2025-05-03 at 7 11 04 AM](https://github.com/user-attachments/assets/123da61a-ce39-456f-ae94-28525ebfbc0a)
+<img width="1153" alt="Screenshot 2025-05-03 at 2 47 20 PM" src="https://github.com/user-attachments/assets/51f7e18b-7d72-49fc-8c96-d046dcaecc91" />
 
 ### Detailed Summary Card View
-![Screenshot 2025-05-03 at 7 12 15 AM](https://github.com/user-attachments/assets/7e49ef2f-f75c-433a-875d-60cd1565cfd4)
+![Screenshot 2025-05-03 at 2 48 21 PM](https://github.com/user-attachments/assets/59370395-df06-42a6-b1b3-f21af8086fb2)
 
 ### Transcribe Landing Page
 ![Screenshot 2025-05-03 at 7 12 49 AM](https://github.com/user-attachments/assets/36996fc1-7b7f-4d57-a6d8-4f906257ec8a)
@@ -50,52 +51,8 @@ Check out our preview web-app here: https://patronusai.vercel.app/
 ### Transcribe Submission Page
 ![Screenshot 2025-05-03 at 7 14 39 AM](https://github.com/user-attachments/assets/a417139a-746c-4ed6-8ad4-eeaaf0a38fc9)
 
-## If You Want to Build the Web-App Locally: 
-
-### Prerequisites
-- Node.js 20+
-- npm or yarn
-- Supabase account
-- OpenAI API key
-
-### Environment Setup
-Create a `.env.local` file in the root directory with the following variables:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-OPENAI_API_KEY=your_openai_api_key
-```
-
-### Installation
-
-1. Clone the repository
-```bash
-git clone https://github.com/vorahardik7/patronus-ai
-cd patronus-ai
-```
-
-2. Install dependencies
-```bash
-npm install
-# or
-yarn install
-```
-
-3. Set up Supabase
-   - Create a new Supabase project
-   - Run the SQL schema in `supabase-tables.sql` to set up the required tables
-   - Create a storage bucket named `audio-transcripts` with public read access
-
-4. Run the development server
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application
+## Architecture Diagram (Basic) 
+![A_d](https://github.com/user-attachments/assets/8a928a19-0991-4f7e-8b39-b2826bdb5efd)
 
 ## Project Structure
 
@@ -147,13 +104,59 @@ The application provides the following API endpoints:
 - `POST /api/save-meeting`: Saves meeting data to Supabase
 - `POST /api/generate-summary-audio`: Generates audio summaries using OpenAI's TTS API
 
+## If You Want to Build the Web-App Locally: 
+
+### Prerequisites
+- Node.js 20+
+- npm or yarn
+- Supabase account
+- OpenAI API key
+
+### Environment Setup
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/vorahardik7/patronus-ai
+cd patronus-ai
+```
+
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Set up Supabase
+   - Create a new Supabase project
+   - Run the SQL schema in `supabase-tables.sql` to set up the required tables
+   - Create a storage bucket named `audio-transcripts` with public read access
+
+4. Run the development server
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application
+
 ## Future Development
 
 - **Analytics Dashboard**: Insights into drug discussions and trends over time
 - **User Authentication**: Role-based access for different hospital staff
 - **Mobile Application**: Dedicated mobile app for on-the-go recording
-- **Calendar Integration**: Connect with hospital calendars for scheduled recordings
-- **Email Notifications**: Alert relevant departments about new drug information
+- **Commure Database Integration**: AI will use Commure's database of patients and tell how many current patients can be affected with the new drug.
 
 ## License
 
