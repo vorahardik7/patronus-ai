@@ -31,7 +31,6 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
-  // Filter meetings from today
   const todayMeetings = meetings.filter(meeting => {
     const meetingDate = new Date(meeting.created_at);
     const today = new Date();
@@ -42,7 +41,6 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
     );
   });
 
-  // Function to generate summary audio
   const generateSummaryAudio = useCallback(async () => {
     if (todayMeetings.length === 0) return;
     
@@ -202,10 +200,7 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
     console.log('Daily summary cache cleared');
   };
 
-  // If no meetings today, don't render the component
-  if (todayMeetings.length === 0) {
-    return null;
-  }
+  // We'll always render the component, but show different content if there are no meetings today
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-secondary-200 overflow-hidden mb-8">
@@ -218,7 +213,11 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
             <div>
               <h2 className="text-xl font-semibold text-secondary-900">Today&apos;s Summary</h2>
               <p className="text-secondary-600 mt-1">
-                {todayMeetings.length} {todayMeetings.length === 1 ? 'meeting' : 'meetings'} recorded today
+                {todayMeetings.length === 0 ? (
+                  "No meetings recorded today"
+                ) : (
+                  <>{todayMeetings.length} {todayMeetings.length === 1 ? 'meeting' : 'meetings'} recorded today</>
+                )}
               </p>
             </div>
             {isCached && (
@@ -270,6 +269,10 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
             <div className="flex items-center text-red-600" onClick={(e) => e.stopPropagation()}>
               <span className="mr-2">❌</span>
               {generationError}
+            </div>
+          ) : todayMeetings.length === 0 ? (
+            <div className="flex items-center text-secondary-600">
+              <span className="text-sm">No meetings to summarize</span>
             </div>
           ) : (
             <button 
@@ -357,13 +360,22 @@ export default function DailySummary({ meetings }: DailySummaryProps) {
             </div>
           )}
           
-          {/* Show the additional info if there's no summary yet */}
-          {!summaryText && todayMeetings.length > 0 && (
+          {/* Show different content based on meetings availability */}
+          {!summaryText && (
             <div className="mt-4 p-4 bg-secondary-50 rounded-lg">
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2 text-secondary-600" />
-                  <h3 className="text-md font-medium text-secondary-900">Ask about today&apos;s meetings</h3>
+                  {todayMeetings.length > 0 ? (
+                    <>
+                      <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2 text-secondary-600" />
+                      <h3 className="text-md font-medium text-secondary-900">Ask about today&apos;s meetings</h3>
+                    </>
+                  ) : (
+                    <>
+                      <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2 text-secondary-600" />
+                      <h3 className="text-md font-medium text-secondary-900">No meetings recorded today</h3>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
